@@ -1,0 +1,58 @@
+use macroquad::math::Vec2;
+use macroquad::prelude::*;
+use crate::states::GameState;
+use crate::sprites::get;
+
+pub struct Runtime {
+    pub current_state: GameState,
+    pub mouse_position: Vec2,
+}
+impl Runtime {
+    pub fn new() -> Self {
+        Runtime {
+            current_state: GameState::MainMenu,
+            mouse_position: Vec2::ZERO,
+        }
+    }
+    pub fn update(&mut self) {
+        // 1. Get current window dimensions
+        let window_w = screen_width();
+        let window_h = screen_height();
+
+        // 2. Re-calculate the exact same letterbox scaling/offsets used in your render loop
+        let scale = (window_w / crate::VIRTUAL_WIDTH).min(window_h / crate::VIRTUAL_HEIGHT);
+        let x_offset = (window_w - (crate::VIRTUAL_WIDTH * scale)) / 2.0;
+        let y_offset = (window_h - (crate::VIRTUAL_HEIGHT * scale)) / 2.0;
+
+        // 3. Get raw mouse position
+        let (raw_x, raw_y) = mouse_position();
+
+        // 4. Subtract the black bar offsets, then divide by the scale
+        let logical_x = (raw_x - x_offset) / scale;
+        let logical_y = (raw_y - y_offset) / scale;
+
+        self.mouse_position = vec2(logical_x, logical_y);
+    }
+    pub fn button(&mut self, sprite_id: &str, x: f32, y: f32) -> bool {
+        match get(sprite_id) {
+            Some(sprite) => {
+                println!("Rect for button '{}': x={}, y={}, width={}, height={}", sprite_id, x, y, sprite.width(), sprite.height());
+                println!("Mouse position: x={}, y={}", self.mouse_position.x, self.mouse_position.y);
+                let rect = Rect::new(x, y, sprite.width() as f32, sprite.height() as f32);
+                if rect.contains(Vec2::new(self.mouse_position.x, self.mouse_position.y)) {
+                    println!("Hovering over button '{}'", sprite_id);
+                    draw_texture(sprite, x, y, WHITE);
+                    if is_mouse_button_pressed(MouseButton::Left) {
+                        return true;
+                    }
+                } else {
+                    draw_texture(sprite, x, y, GRAY);
+                }
+            }
+            None => {
+                panic!("Sprite with ID '{}' not found in registry!", sprite_id);
+            }
+        }
+        false
+    }
+}
