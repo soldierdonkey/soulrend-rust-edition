@@ -1,9 +1,9 @@
 // src/states/environment.rs
 // import the World struct from world.rs
-mod world;
+pub mod world;
 pub use self::world::*;
 
-mod tile;
+pub mod tile;
 pub use self::tile::*;
 
 pub struct Environment {

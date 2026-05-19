@@ -6,7 +6,7 @@ pub use self::tiledata::*;
 mod tiletype;
 pub use self::tiletype::*;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Tile {
     pub tile_data: TileData,
     pub tile_type: TileType

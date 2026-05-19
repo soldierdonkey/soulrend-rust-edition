@@ -1,8 +1,8 @@
-mod scene;
+pub mod scene;
 pub use self::scene::*;
 
 // Adds terrain generation methods
-mod terrain;
+pub mod terrain;
 pub use self::terrain::*;
 
 pub struct World {

@@ -1,3 +1,5 @@
+use macroquad::math::Vec2;
+
 // src/states/movement.rs
 // Direction Enum
 // Implements its own None so Option<Direction> is not needed. Does not carry data.
@@ -11,19 +13,19 @@ pub enum Direction {
 }
 // Position Struct
 pub struct Movement {
-    position: Position,
-    velocity: Velocity,
-    acceleration: f32,
-    is_grounded: bool,
-    friction: f32,
+    pub position: Vec2,
+    pub velocity: Vec2,
+    pub acceleration: f32,
+    pub is_grounded: bool,
+    pub friction: f32,
 }
 impl Movement {
     pub fn new() -> Self {
         Self {
-            position: Position { x: 0.0, y: 0.0 },
-            velocity: Velocity { x: 0.0, y: 0.0 },
-            acceleration: 0.0,
-            is_grounded: true,
+            position: Vec2::new(0.0, 0.0),
+            velocity: Vec2::new(0.0, 0.0),
+            acceleration: 1.0,
+            is_grounded: false,
             friction: 10.0, // Friction coefficient for deceleration when no input is
         }
     }
@@ -38,14 +40,8 @@ impl Movement {
         if !self.is_grounded {
             self.velocity.y += gravity * delta_time;
         }
+        self.position.x += self.velocity.x * delta_time;
+        self.position.y += self.velocity.y * delta_time;
         // Update position based on velocity and delta_time
     }
-}
-pub struct Position {
-    x: f32,
-    y: f32,
-}
-pub struct Velocity {
-    x: f32,
-    y: f32,
 }

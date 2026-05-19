@@ -11,6 +11,7 @@ use self::helper::*;
 mod runtime;
 use self::runtime::*;
 
+mod render;
 
 // 1. Tell Rust to look for the sprites.rs file
 mod sprites;
@@ -62,9 +63,9 @@ async fn main() {
             GameState::InstanceCreator => {
                 instance_creator(&mut game);
             }
-            GameState::InGame(state) => {
+            GameState::InGame(in_game_state) => {
+                in_game_state.in_game();
                 // Call the method defined in states.rs
-                state.update_and_draw();
                 draw_text("Press Escape to exit the instance!", 10.0, 10.0, 20.0, RED);
                 if is_key_pressed(KeyCode::Escape) {
                     game.current_state = GameState::InstanceManager;

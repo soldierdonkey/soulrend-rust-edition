@@ -1,13 +1,14 @@
 // Import file types
 use super::super::tile::Tile;
 use super::super::tile::TileType;
+use crate::states::environment::terrain::hills::*;
 
 pub struct Scene {
-    scene_id: String,
-    name: String,
-    description: String,
-    starts: Vec<(u32, u32)>,
-    tiles: SceneMap,
+    pub scene_id: String,
+    pub name: String,
+    pub description: String,
+    pub starts: Vec<(u32, u32)>,
+    pub tiles: SceneMap,
 }
 impl Scene {
     pub fn new(scene_id: String, name: String, description: String, size: (u32, u32)) -> Self {
@@ -16,7 +17,7 @@ impl Scene {
             name,
             description,
             starts: Vec::new(),
-            tiles: SceneMap::new(size.0, size.1),
+            tiles: generate_hills(size.0 as usize, size.1 as usize, 3),
         }
     }
     pub fn add_start(&mut self, position: (u32, u32)) {

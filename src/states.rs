@@ -5,8 +5,11 @@ pub use self::menu::*;
 mod player;
 pub use self::player::*;
 
-mod environment;
+pub mod environment;
 pub use self::environment::*;
+
+pub mod in_game;
+pub use self::in_game::*;
 
 mod movement;
 pub use self::movement::*;
@@ -31,9 +34,5 @@ impl InGameState {
             player: Player::new(),
             environment: Environment::new(),
         }
-    }
-
-    pub fn update_and_draw(&mut self) {
-        // Your logic here...
     }
 }
