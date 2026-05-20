@@ -1,5 +1,6 @@
 use macroquad::math::Vec2;
-
+mod player_movement;
+pub use self::player_movement::*;
 // src/states/movement.rs
 // Direction Enum
 // Implements its own None so Option<Direction> is not needed. Does not carry data.
@@ -24,12 +25,12 @@ impl Movement {
         Self {
             position: Vec2::new(0.0, 0.0),
             velocity: Vec2::new(0.0, 0.0),
-            acceleration: 1.0,
+            acceleration: 5.0,
             is_grounded: false,
             friction: 10.0, // Friction coefficient for deceleration when no input is
         }
     }
-    pub fn update(&mut self, direction: Direction, gravity: f32, delta_time: f32) {
+    pub fn update(&mut self, direction: &Direction, gravity: f32, delta_time: f32) {
         // Update velocity based on direction and acceleration
         match direction {
             Direction::Left => self.velocity.x -= self.acceleration * delta_time,

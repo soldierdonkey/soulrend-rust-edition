@@ -43,11 +43,12 @@ pub fn generate_hills(width: usize, height: usize, seed: u32) -> SceneMap {
     let mut output_map = SceneMap::new(width as u32, height as u32);
     for x in 0..width {
         for y in 0..height {
-            if (y as f32) < heights[x] {
-                println!("grass! at ({}, {}) with height {}", x, y, heights[x]);
+            if (y as f32) > heights[x] {
+                // println!("grass! at ({}, {}) with height {}", x, y, heights[x]);
                 output_map.tiles[y][x] = Tile::new(TileType::Solid("test_block:grass_block_top".to_string()));
             }
         }
     }
+    println!("Generated hills with parameters: frequency={}, amplitude={}, base_height={}", frequency, amplitude, base_height);
     output_map
 }

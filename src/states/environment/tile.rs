@@ -15,7 +15,7 @@ impl Tile {
     pub fn new(tile_type: TileType) -> Self {
         Self {
             tile_data: TileData::new(),
-            tile_type: TileType::Empty,
+            tile_type: tile_type,
         }
     }
 }

@@ -6,3 +6,6 @@ pub use self::instance_creator::*;
 
 mod main_menu;
 pub use self::main_menu::*;
+
+mod helper;
+pub use self::helper::*;

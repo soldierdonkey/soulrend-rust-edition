@@ -24,6 +24,7 @@ impl Scene {
         self.starts.push(position);
     }
 }
+#[derive(Debug)]
 pub struct SceneMap {
     pub width: u32,
     pub height: u32,

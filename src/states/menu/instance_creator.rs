@@ -3,8 +3,8 @@ use crate::runtime::Runtime;
 use crate::states::hills::generate_hills;
 use crate::states::{GameState, InGameState};
 pub fn instance_creator(game: &mut Runtime) {
-    draw_text("Press Space to create an instance!", 0.0, 10.0, 20.0, RED);
-    draw_text("Press Escape to exit to the manager!", 0.0, 30.0, 20.0, RED);
+    draw_text("Press Space to create an instance!", 0.0, 40.0, 80.0, RED);
+    draw_text("Press Escape to exit to the manager!", 0.0, 150.0, 80.0, RED);
     if is_key_pressed(KeyCode::Space) {
         // Initialize the inner state data when transitioning
         let mut in_game_state = InGameState::new();

@@ -9,6 +9,9 @@ mod stats;
 pub use self::stats::*;
 // Import Position
 pub use super::movement::*;
+// Import Controls
+pub mod controls;
+pub use self::controls::*;
 
 pub struct Player {
     pub name: String,
@@ -18,6 +21,7 @@ pub struct Player {
     pub movement: Movement,
     pub world: usize,
     pub scene: usize,
+    pub inputs: Inputs,
 }
 impl Player {
     pub fn new() -> Self {
@@ -29,6 +33,7 @@ impl Player {
             movement: Movement::new(),
             world: 0,
             scene: 0,
+            inputs: Inputs::new(),
         }
     }
 }
