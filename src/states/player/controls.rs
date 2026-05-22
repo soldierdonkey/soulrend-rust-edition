@@ -28,7 +28,7 @@ impl Player {
             self.inputs.vertical = Direction::None;
         }
         if is_key_down(KeyCode::A) && is_key_down(KeyCode::D) {
-            self.inputs.direction = Direction::Up;
+            self.inputs.direction = Direction::None;
         } else if is_key_down(KeyCode::A) {
             self.inputs.direction = Direction::Left;
         } else if is_key_down(KeyCode::D) {

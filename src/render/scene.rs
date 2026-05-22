@@ -16,26 +16,36 @@ impl Scene {
 
 impl SceneMap {
     pub fn draw(&self, central_coordinates: (f32, f32)) {
-        //Scene doesn't necessarily follow the player, but for now we'll just center the view on the player coordinates passed in.
-        let (camera_x, camera_y) = central_coordinates; //  Keep these as raw f32 floats!
+        let (camera_x, camera_y) = central_coordinates; 
         
-        // Derive the top-left corner of the screen by subtracting half the screen size from the center focus
-        let screen_left = camera_x - (crate::LOGICAL_WIDTH / 2.0);
-        let screen_top = camera_y - (crate::LOGICAL_HEIGHT / 2.0);
+        // 1. Derive the initial top-left corner of the screen by subtracting half the screen size from the center focus
+        let mut screen_left = camera_x - (crate::LOGICAL_WIDTH / 2.0);
+        let mut screen_top = camera_y - (crate::LOGICAL_HEIGHT / 2.0);
+
+        // 2. Calculate the maximum permissible top-left limits based on total world pixels
+        let max_screen_left = (self.width as f32 * crate::TILE_SIZE) - crate::LOGICAL_WIDTH;
+        let max_screen_top = (self.height as f32 * crate::TILE_SIZE) - crate::LOGICAL_HEIGHT;
+
+        // 3. Clamp camera matrix offsets to prevent viewing negative space or scrolling past world boundaries
+        // max(0.0) shields the layout calculation if a small test map size is narrower than the viewport capacity
+        screen_left = screen_left.clamp(0.0, max_screen_left.max(0.0));
+        screen_top = screen_top.clamp(0.0, max_screen_top.max(0.0));
+
+        // Re-derive screen right and bottom from our perfectly clamped top-left anchor
         let screen_right = screen_left + crate::LOGICAL_WIDTH;
         let screen_bottom = screen_top + crate::LOGICAL_HEIGHT;
 
-        // Convert pixel space to indices (Using our new screen edges)
+        // 4. Convert pixel space boundaries safely to tile matrix grid indices
         let mut start_x = (screen_left / crate::TILE_SIZE).floor() as i32 - 1;
         let mut end_x = (screen_right / crate::TILE_SIZE).ceil() as i32 + 1;
         let mut start_y = (screen_top / crate::TILE_SIZE).floor() as i32 - 1;
         let mut end_y = (screen_bottom / crate::TILE_SIZE).ceil() as i32 + 1;
 
-        // Clamp to matrix boundaries to prevent crashes
-        start_x = start_x.max(0).min(self.width as i32);
-        end_x = end_x.max(0).min(self.width as i32);
-        start_y = start_y.max(0).min(self.height as i32);
-        end_y = end_y.max(0).min(self.height as i32);
+        // 5. Hard clamp the matrix indices to world limits to eliminate out-of-bounds panics
+        start_x = start_x.clamp(0, self.width as i32);
+        end_x = end_x.clamp(0, self.width as i32);
+        start_y = start_y.clamp(0, self.height as i32);
+        end_y = end_y.clamp(0, self.height as i32);
 
         // 3. Render loop
         for y in (start_y as usize)..(end_y as usize) {
@@ -67,8 +77,8 @@ impl SceneMap {
                 } else {
                     draw_rectangle(world_x, world_y, crate::TILE_SIZE, crate::TILE_SIZE, MAGENTA);
                 }
-                draw_text((format!("{}, {}", x, y)).as_str(), world_x, world_y, 40.0, RED);
-                println!("Drawing tile at coordinates: {}, {}", x, y);
+                // draw_text((format!("{}, {}", x, y)).as_str(), world_x, world_y, 40.0, RED);
+                // println!("Drawing tile at coordinates: {}, {}", x, y);
             }
         }
     }

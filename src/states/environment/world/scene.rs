@@ -32,10 +32,23 @@ pub struct SceneMap {
 }
 impl SceneMap {
     pub fn new(width: u32, height: u32) -> Self {
+        // Pre-allocate the memory for our rows to keep initialization fast
+        let mut tiles = Vec::with_capacity(height as usize);
+        
+        for y in 0..(height as usize) {
+            // Pre-allocate memory for the columns in this row
+            let mut row = Vec::with_capacity(width as usize);
+            for x in 0..(width as usize) {
+                // Initialize each tile dynamically with its exact X and Y coordinates
+                row.push(Tile::new(TileType::Empty, x, y, crate::TILE_SIZE));
+            }
+            tiles.push(row);
+        }
+
         Self {
             width,
             height,
-            tiles: vec![vec![Tile::new(TileType::Empty); width as usize]; height as usize],
+            tiles,
         }
     }
 }

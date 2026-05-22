@@ -1,7 +1,9 @@
 use crate::states::player::*;
+use crate::states::environment::tile::*;
+use crate::states::environment::scene::*;
 
 impl Player {
-    pub fn move_player(&mut self, gravity: f32, delta_time: f32) {
-        self.movement.update(&self.inputs.direction, gravity, delta_time);
+    pub fn move_player(&mut self, scene: &SceneMap, delta_time: f32) {
+        self.movement.update(&self.inputs, scene, delta_time);
     }
 }

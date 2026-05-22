@@ -17,16 +17,16 @@ pub fn generate_hills(width: usize, height: usize, seed: u32) -> SceneMap {
     let amplitude: f32; // Higher = taller hills
     let base_height: f32; // The average Y coordinate of the ground
     // --- TERRAIN TUNING PARAMETERS ---
-    match HillType::Hills {
+    match HillType::Plains {
         HillType::Plains => {
             frequency = 0.01;
-            amplitude = 10.0;
-            base_height = 50.0;
+            amplitude = 7.0;
+            base_height = 10.0;
         },
         HillType::Hills => {
             frequency = 0.03;
             amplitude = 40.0;
-            base_height = 100.0;
+            base_height = 50.0;
         },
     }
     for x in 0..width {
@@ -45,7 +45,7 @@ pub fn generate_hills(width: usize, height: usize, seed: u32) -> SceneMap {
         for y in 0..height {
             if (y as f32) > heights[x] {
                 // println!("grass! at ({}, {}) with height {}", x, y, heights[x]);
-                output_map.tiles[y][x] = Tile::new(TileType::Solid("test_block:grass_block_top".to_string()));
+                output_map.tiles[y][x].update(TileType::Solid("test_block:grass_block_top".to_string()));
             }
         }
     }
