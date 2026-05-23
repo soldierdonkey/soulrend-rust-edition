@@ -30,7 +30,7 @@ impl Player {
             stats: Stats::new(),
             attributes: Attributes::new(),
             inventory: Inventory::new(),
-            movement: Movement::new(),
+            movement: Movement::new(4.0, 0.0),
             world: 0,
             scene: 0,
             inputs: Inputs::new(),

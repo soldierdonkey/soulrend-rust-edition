@@ -29,34 +29,23 @@ pub struct Movement {
     pub size: Vec2,
 }
 impl Movement {
-    pub fn new() -> Self {
+    pub fn new(start_x: f32, start_y: f32) -> Self {
         Self {
-            position: Vec2::new(0.0, 0.0),
+            position: Vec2::new(start_x, start_y),
             velocity: Vec2::new(0.0, 0.0),
-            acceleration: 500.0,
+            acceleration: 50.0,
             is_grounded: false,
-            friction: 10.0, // Friction coefficient for deceleration when no input is
-            size: Vec2::new(128.0, 256.0),
+            friction: 25.0, 
+            size: Vec2::new(1.0, 2.0), // Standard clean proportions (60% width, 1.8 blocks high)
         }
     }
-    // Use this for collision detection only!
-    // It creates a slightly smaller box centered inside the player.
-    pub fn get_collision_rect(&self) -> Rect {
-        let padding = 4.0; // Shrink by 4 pixels on all sides
-        Rect::new(
-            self.position.x + padding, 
-            self.position.y + padding, 
-            self.size.x - (padding * 2.0), 
-            self.size.y - padding // Keep the bottom slightly longer to ensure ground detection
-        )
-    }
-    pub fn update(&mut self, inputs: &Inputs, scene_map: &SceneMap, dt: f32) {
-        let gravity = 1200.0;
-        let walk_speed = 300.0;
-        let jump_force = -550.0;
 
-        // --- Inputs ---
-        // Do NOT reset velocity to 0.0 unconditionally here.
+    pub fn update(&mut self, inputs: &Inputs, scene_map: &SceneMap, dt: f32) {
+        let gravity = 22.0;       // Blocks per second downward acceleration
+        let walk_speed = 7.0;     // Run velocity limit in blocks
+        let jump_force = -11.0;   // Immediate negative vertical impulse
+
+        // --- Horizontal Input Handling ---
         match inputs.direction {
             Direction::Left => self.velocity.x = -walk_speed,
             Direction::Right => self.velocity.x = walk_speed,
@@ -66,60 +55,89 @@ impl Movement {
             _ => {}
         }
         
-        // --- Jumping ---
+        // --- Jump Input Handling ---
         if inputs.vertical == Direction::Up && self.is_grounded {
             self.velocity.y = jump_force;
             self.is_grounded = false;
         }
 
-        // --- Gravity ---
+        // --- Apply Ambient Gravity ---
         self.velocity.y += gravity * dt;
 
-        // --- Move & Collide X ---
+        // --- Move & Resolve Collision: X-Axis ---
         self.position.x += self.velocity.x * dt;
         self.handle_collisions(scene_map, true);
 
-        // --- Move & Collide Y ---
+        // --- Move & Resolve Collision: Y-Axis ---
         self.position.y += self.velocity.y * dt;
-        self.is_grounded = false; // Will be set to true inside handle_collisions if we hit a floor
+        self.is_grounded = false; 
         self.handle_collisions(scene_map, false);
     }
-
     fn handle_collisions(&mut self, scene_map: &SceneMap, checking_x: bool) {
-        // 1. Use the new inset collision box
-        let player_rect = self.get_collision_rect();
+        // A tiny floating-point safety buffer in block units (no raw pixels!)
+        let skin = 0.02; 
 
-        // 1. Calculate boundaries in grid indices
-        // Clamp values to ensure we stay within the tile vector range
-        let start_x = (player_rect.left() / crate::TILE_SIZE).floor().clamp(0.0, scene_map.width as f32 - 1.0) as usize;
-        let end_x = (player_rect.right() / crate::TILE_SIZE).floor().clamp(0.0, scene_map.width as f32 - 1.0) as usize;
-        
-        let start_y = (player_rect.top() / crate::TILE_SIZE).floor().clamp(0.0, scene_map.height as f32 - 1.0) as usize;
-        let end_y = (player_rect.bottom() / crate::TILE_SIZE).floor().clamp(0.0, scene_map.height as f32 - 1.0) as usize;
+        // 1. Inset the OPPOSITE axis of motion to prevent ground/wall cross-talk
+        let mut search_rect = if checking_x {
+            // Checking walls: shrink vertically so feet/head don't catch floors/ceilings
+            Rect::new(
+                self.position.x,
+                self.position.y + skin,
+                self.size.x,
+                self.size.y - (skin * 2.0),
+            )
+        } else {
+            // Checking floors: shrink horizontally so sides don't catch wall surfaces
+            Rect::new(
+                self.position.x + skin,
+                self.position.y,
+                self.size.x - (skin * 2.0),
+                self.size.y,
+            )
+        };
 
-        // 2. Iterate only over the relevant grid slice
-        for y in start_y..=end_y {
-            for x in start_x..=end_x {
+        // 2. Calculate dynamic grid boundaries based on the insulated rect footprint
+        let start_x = search_rect.left().floor() as i32 - 1;
+        let end_x = search_rect.right().ceil() as i32 + 1;
+        let start_y = search_rect.top().floor() as i32 - 1;
+        let end_y = search_rect.bottom().ceil() as i32 + 1;
+
+        let check_start_x = start_x.max(0) as usize;
+        let check_end_x = (end_x.max(0) as usize).min(scene_map.width as usize);
+        let check_start_y = start_y.max(0) as usize;
+        let check_end_y = (end_y.max(0) as usize).min(scene_map.height as usize);
+
+        // 3. Scan the insulated block grid path
+        for y in check_start_y..check_end_y {
+            for x in check_start_x..check_end_x {
                 let tile = &scene_map.tiles[y][x];
                 if !tile.tile_data.is_solid { continue; }
 
-                if player_rect.overlaps(&tile.tile_data.bounds) {
-                    // Only resolve if we are actually moving into the wall
+                // Uniform 1.0 x 1.0 static tile bounds
+                let tile_rect = Rect::new(x as f32, y as f32, 1.0, 1.0);
+
+                // 4. Regenerate the checking frame using the player's updated position coordinates
+                let current_player_box = if checking_x {
+                    Rect::new(self.position.x, self.position.y + skin, self.size.x, self.size.y - (skin * 2.0))
+                } else {
+                    Rect::new(self.position.x + skin, self.position.y, self.size.x - (skin * 2.0), self.size.y)
+                };
+
+                if current_player_box.overlaps(&tile_rect) {
                     if checking_x {
-                        println!("Collision detected in X direction");
                         if self.velocity.x > 0.0 {
-                            // Subtract a tiny "skin" (e.g., 0.1) so we aren't perfectly flush
-                            self.position.x = &tile.tile_data.bounds.left() - self.size.x - 0.1;
+                            // Snaps left side of player body right against the block face
+                            self.position.x = tile_rect.left() - self.size.x;
                         } else if self.velocity.x < 0.0 {
-                            self.position.x = &tile.tile_data.bounds.right() + 0.1;
+                            self.position.x = tile_rect.right();
                         }
                         self.velocity.x = 0.0;
                     } else {
                         if self.velocity.y > 0.0 {
-                            self.position.y = &tile.tile_data.bounds.top() - self.size.y - 0.1;
+                            self.position.y = tile_rect.top() - self.size.y;
                             self.is_grounded = true;
                         } else if self.velocity.y < 0.0 {
-                            self.position.y = &tile.tile_data.bounds.bottom() + 0.1;
+                            self.position.y = tile_rect.bottom();
                         }
                         self.velocity.y = 0.0;
                     }

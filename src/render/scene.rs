@@ -16,47 +16,49 @@ impl Scene {
 
 impl SceneMap {
     pub fn draw(&self, central_coordinates: (f32, f32)) {
-        let (camera_x, camera_y) = central_coordinates; 
+        let (camera_x, camera_y) = central_coordinates; // Both are in block units now
         
-        // 1. Derive the initial top-left corner of the screen by subtracting half the screen size from the center focus
-        let mut screen_left = camera_x - (crate::LOGICAL_WIDTH / 2.0);
-        let mut screen_top = camera_y - (crate::LOGICAL_HEIGHT / 2.0);
+        // Convert screen width and height constants from pixel space into block units
+        let view_width_blocks = crate::LOGICAL_WIDTH / crate::TILE_SIZE;
+        let view_height_blocks = crate::LOGICAL_HEIGHT / crate::TILE_SIZE;
+        
+        // 1. Derive the initial top-left corner of the screen in block units
+        let mut screen_left = camera_x - (view_width_blocks / 2.0);
+        let mut screen_top = camera_y - (view_height_blocks / 2.0);
 
-        // 2. Calculate the maximum permissible top-left limits based on total world pixels
-        let max_screen_left = (self.width as f32 * crate::TILE_SIZE) - crate::LOGICAL_WIDTH;
-        let max_screen_top = (self.height as f32 * crate::TILE_SIZE) - crate::LOGICAL_HEIGHT;
+        // 2. Calculate the maximum permissible top-left boundary limits in blocks
+        let max_screen_left = self.width as f32 - view_width_blocks;
+        let max_screen_top = self.height as f32 - view_height_blocks;
 
-        // 3. Clamp camera matrix offsets to prevent viewing negative space or scrolling past world boundaries
-        // max(0.0) shields the layout calculation if a small test map size is narrower than the viewport capacity
+        // 3. Clamp values to prevent rendering out-of-bounds negative space
         screen_left = screen_left.clamp(0.0, max_screen_left.max(0.0));
         screen_top = screen_top.clamp(0.0, max_screen_top.max(0.0));
 
-        // Re-derive screen right and bottom from our perfectly clamped top-left anchor
-        let screen_right = screen_left + crate::LOGICAL_WIDTH;
-        let screen_bottom = screen_top + crate::LOGICAL_HEIGHT;
+        // Re-derive screen right and bottom bounds in blocks
+        let screen_right = screen_left + view_width_blocks;
+        let screen_bottom = screen_top + view_height_blocks;
 
-        // 4. Convert pixel space boundaries safely to tile matrix grid indices
-        let mut start_x = (screen_left / crate::TILE_SIZE).floor() as i32 - 1;
-        let mut end_x = (screen_right / crate::TILE_SIZE).ceil() as i32 + 1;
-        let mut start_y = (screen_top / crate::TILE_SIZE).floor() as i32 - 1;
-        let mut end_y = (screen_bottom / crate::TILE_SIZE).ceil() as i32 + 1;
+        // 4. Bounding indices can be converted directly without division mutations
+        let mut start_x = screen_left.floor() as i32 - 1;
+        let mut end_x = screen_right.ceil() as i32 + 1;
+        let mut start_y = screen_top.floor() as i32 - 1;
+        let mut end_y = screen_bottom.ceil() as i32 + 1;
 
-        // 5. Hard clamp the matrix indices to world limits to eliminate out-of-bounds panics
+        // 5. Hard clamp the matrix indices to map limits to eliminate out-of-bounds panics
         start_x = start_x.clamp(0, self.width as i32);
         end_x = end_x.clamp(0, self.width as i32);
         start_y = start_y.clamp(0, self.height as i32);
         end_y = end_y.clamp(0, self.height as i32);
 
-        // 3. Render loop
+        // Render loop
         for y in (start_y as usize)..(end_y as usize) {
             for x in (start_x as usize)..(end_x as usize) {
                 let tile = &self.tiles[y][x];
                 if let TileType::Empty = tile.tile_type { continue; }
 
-                // Camera matrix projection using raw floats, THEN rounded to 
-                // lock perfectly into the 1920x1080 logical pixel grid.
-                let world_x = (x as f32 * crate::TILE_SIZE - screen_left).round();
-                let world_y = (y as f32 * crate::TILE_SIZE - screen_top).round();
+                // Translate grid indexing to logic offset bounds, then multiply by pixel scale
+                let world_x = ((x as f32 - screen_left) * crate::TILE_SIZE).round();
+                let world_y = ((y as f32 - screen_top) * crate::TILE_SIZE).round();
 
                 let sprite_key = match &tile.tile_type {
                     TileType::Solid(texture_path) => texture_path.as_str(),
@@ -77,8 +79,6 @@ impl SceneMap {
                 } else {
                     draw_rectangle(world_x, world_y, crate::TILE_SIZE, crate::TILE_SIZE, MAGENTA);
                 }
-                // draw_text((format!("{}, {}", x, y)).as_str(), world_x, world_y, 40.0, RED);
-                // println!("Drawing tile at coordinates: {}, {}", x, y);
             }
         }
     }

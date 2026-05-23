@@ -26,7 +26,7 @@ const TILE_SIZE: f32 = 128.0;
 
 
 
-#[macroquad::main("Soulrend 2")]
+#[macroquad::main("Soulrend Rust Edition")]
 async fn main() {
     // Initialize the game
     let mut game = Runtime::new();
