@@ -1,7 +1,6 @@
 use macroquad::math::Vec2;
 use macroquad::prelude::*;
 use crate::states::GameState;
-use crate::sprites::get;
 
 pub struct Runtime {
     pub current_state: GameState,

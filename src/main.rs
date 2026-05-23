@@ -14,7 +14,7 @@ use self::runtime::*;
 mod render;
 
 // 1. Tell Rust to look for the sprites.rs file
-mod sprites;
+mod assets;
 
 
 // Define your game's internal resolution (the logical resolution)
@@ -42,8 +42,8 @@ async fn main() {
     game_camera.render_target = Some(render_target.clone());
 
     // 3. Populate the global registry right after Macroquad starts up (GPU context is ready)
-    sprites::init();
-    sprites::print_all();
+    assets::init();
+    assets::print_all();
     
     loop {
         // --- 1. DRAW GAME AT FIXED RESOLUTION ---

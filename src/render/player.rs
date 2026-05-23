@@ -37,7 +37,7 @@ impl Player {
         let screen_x = (((player_x - screen_left) * crate::TILE_SIZE) - waist_offset_x).round();
         let screen_y = (((player_y - screen_top) * crate::TILE_SIZE) - waist_offset_y).round();
 
-        if let Some(texture) = crate::sprites::get("entity:player") {
+        if let Some(texture) = crate::assets::sprites::get("entity:player") {
             draw_texture_ex(texture, screen_x, screen_y, WHITE, DrawTextureParams {
                 dest_size: Some(vec2(visual_width, visual_height)),
                 ..Default::default()

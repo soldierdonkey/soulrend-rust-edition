@@ -1,6 +1,6 @@
 use macroquad::prelude::*;
 use crate::render;
-use crate::sprites::*;
+use crate::assets::*;
 use crate::states::environment::tile::TileType;
 use crate::states::environment::SceneMap;
 use crate::states::environment::Scene;
@@ -65,7 +65,7 @@ impl SceneMap {
                     _ => "soulrend:unknown",
                 };
 
-                if let Some(texture) = crate::sprites::get(sprite_key) {
+                if let Some(texture) = crate::assets::sprites::get(sprite_key) {
                     draw_texture_ex(
                         texture,
                         world_x,
