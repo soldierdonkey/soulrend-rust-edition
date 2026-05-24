@@ -10,7 +10,6 @@ pub enum HillType {
 pub fn generate_hills(width: usize, height: usize, seed: u32) -> SceneMap {
     let mut fbm = Fbm::<OpenSimplex>::new(seed);
     fbm = fbm.set_octaves(4); // Layers of detail (4 is usually plenty for 2D)
-    let noise = fbm.set_frequency(0.01); // Base frequency of the largest hills
     let mut heights = Vec::with_capacity(width);
 
     let frequency: f64; // Lower = wider hills
@@ -19,16 +18,17 @@ pub fn generate_hills(width: usize, height: usize, seed: u32) -> SceneMap {
     // --- TERRAIN TUNING PARAMETERS ---
     match HillType::Plains {
         HillType::Plains => {
-            frequency = 0.01;
+            frequency = 0.03;
             amplitude = 7.0;
             base_height = 10.0;
         },
         HillType::Hills => {
-            frequency = 0.03;
+            frequency = 0.2;
             amplitude = 40.0;
             base_height = 50.0;
         },
     }
+    let noise = fbm.set_frequency(frequency); // Base frequency of the largest hills
     for x in 0..width {
         // 1. Sample the noise at (x, 0.0) to get a 1D slice.
         // We multiply x by frequency to stretch/squash the noise graph.
