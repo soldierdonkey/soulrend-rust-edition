@@ -1,34 +1,46 @@
 use macroquad::prelude::*;
+use crate::assets;
 use std::f32::consts::{FRAC_PI_2, PI};
 
 pub fn draw_3_patch_window(
-    corner: &Texture2D,
-    side: &Texture2D,
-    center: &Texture2D,
+    id: &String,
     dest_rect: Rect,
-    color: Color,
-    scale: f32,       // <--- Added scale factor (e.g., 2.0 for 2x scale)
-    debug_mode: bool,
 ) {
+    let color = WHITE;
+    let corner_key = format!("{}/corner", id);
+    let side_key = format!("{}/side", id);
+    let center_key = format!("{}/center", id);
+    let (corner, side, center) = if let (Some(c_tex), Some(s_tex), Some(ctr_tex)) = (
+        assets::sprites::get(&corner_key),
+        assets::sprites::get(&side_key),
+        assets::sprites::get(&center_key),
+    ) {
+        (c_tex, s_tex, ctr_tex)
+    } else {
+        panic!("Error! Any one of Sprites: {}, {}, {} is not in the Sprite Registry!", &corner_key, &side_key, &center_key);
+    };
     let x = dest_rect.x;
     let y = dest_rect.y;
     let w = dest_rect.w;
     let h = dest_rect.h;
 
     // Apply the scaling factor to the raw texture dimensions
-    let c_size = corner.width() * scale; 
-    let s_thick = side.height() * scale; 
+    let (c_size, s_thick) = if let Some(size) = assets::threepatch::get(id) {
+        (size.border_size, size.border_size)
+    } else {
+        (corner.width(), side.height())
+    };
 
     // The inner fill area shrinks because the borders take up more space
     let dynamic_w = w - (c_size * 2.0);
     let dynamic_h = h - (c_size * 2.0);
 
-    if debug_mode {
-        println!("--- 3-Patch Scaled Telemetry ---");
-        println!("Scale Factor: {}x", scale);
-        println!("Scaled Corner Size: {}, Scaled Side Thickness: {}", c_size, s_thick);
-        println!("Dynamic Fill Workspace: {}x{}", dynamic_w, dynamic_h);
-    }
+    // if debug_mode {
+    //     println!("--- 3-Patch Scaled Telemetry ---");
+    //     println!("Scale Factor: {}x, {}x", c_size, s_thick);
+    //     println!("Scaled Corner Size: {}, Scaled Side Thickness: {}", c_size, s_thick);
+    //     println!("Dynamic Fill Workspace: {}x{}", dynamic_w, dynamic_h);
+    // }
 
     // =========================================================================
     // 1. DRAW THE CENTER

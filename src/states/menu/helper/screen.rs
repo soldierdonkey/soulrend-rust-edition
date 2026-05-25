@@ -7,7 +7,7 @@ use macroquad::prelude::*;
 use macroquad::math::Vec2;
 
 impl Runtime {
-    pub fn render_screen(&mut self, screen_id: String, screen_pos: Vec2) -> Option<UiAction> {
+    pub fn render_screen(&mut self, screen_id: String) -> Option<UiAction> {
         let mut click_action = None;
         let mouse = self.mouse_position;
         let mouse_pressed = is_mouse_button_down(MouseButton::Left);
@@ -23,23 +23,11 @@ impl Runtime {
         let window_center: Vec2 = match &screen.window {
             WindowType::Ui(window) => {
                 // 1. Draw the data-driven window skin via 3-Patch Rotation
-                let skin_id = &window.sprite; // e.g., "soulrend:gui/window_skin"
-
-                let corner_key = format!("{}/corner", skin_id);
-                let side_key = format!("{}/side", skin_id);
-                let center_key = format!("{}/center", skin_id);
-                if let (Some(c_tex), Some(s_tex), Some(ctr_tex)) = (
-                    assets::sprites::get(&corner_key),
-                    assets::sprites::get(&side_key),
-                    assets::sprites::get(&center_key),
-                ) {
-                    // Use screen_pos as the dynamic anchor override
-                    let win_rect = Rect::new(screen_pos.x, screen_pos.y, window.w, window.h);
-                    draw_3_patch_window(c_tex, s_tex, ctr_tex, win_rect, WHITE, 2.0, false);
-                }
+                // Use screen_pos as the dynamic anchor override
+                draw_3_patch_window(&window.sprite, window.get_win_rect());
 
                 // Calculate center using screen_pos instead of screen.window.x/y
-                screen_pos + vec2(window.w / 2.0, window.h / 2.0)
+                window.get_coordinates() + vec2(window.w / 2.0, window.h / 2.0)
             },
             WindowType::Background(background) => {
                 match assets::sprites::get(background) {
@@ -59,7 +47,10 @@ impl Runtime {
                         panic!("Sprite with ID '{}' not found in Sprite Registry!", background);
                     }
                 }
-                screen_pos + vec2(crate::VIRTUAL_WIDTH / 2.0, crate::VIRTUAL_HEIGHT / 2.0)
+                vec2(crate::VIRTUAL_WIDTH / 2.0, crate::VIRTUAL_HEIGHT / 2.0)
+            },
+            WindowType::None => {
+               vec2(crate::VIRTUAL_WIDTH / 2.0, crate::VIRTUAL_HEIGHT / 2.0) 
             }
         };
 
@@ -78,18 +69,19 @@ impl Runtime {
             let is_hovered = widget_rect.contains(mouse);
 
             match &widget.kind {
-                WidgetKind::TextButton { text, action, sprite, text_color, font_size } => {
+                WidgetKind::TextButton { text, action, slice, text_color, font_size } => {
                     // Determine appropriate state asset skin on the fly!
                     let sprite_key = if is_hovered && mouse_pressed {
-                        format!("{}/pressed", sprite)
+                        format!("{}/pressed", slice.sprite)
                     } else if is_hovered {
-                        format!("{}/hover", sprite)
+                        format!("{}/hover", slice.sprite)
                     } else {
-                        format!("{}/normal", sprite)
+                        format!("{}/normal", slice.sprite)
                     };
 
                     // Render dynamic texture button frame
                     if let Some(btn_tex) = assets::sprites::get(&sprite_key) {
+                        // draw_3_patch_window(slice.sprite, dest_rect, color, scale, debug_mode);
                         draw_texture_ex(btn_tex, global_pos.x, global_pos.y, WHITE, DrawTextureParams {
                             dest_size: Some(vec2(widget.w, widget.h)),
                             ..Default::default()
@@ -128,8 +120,8 @@ impl Runtime {
                         click_action = Some(action.clone());
                     }
                 }
-                WidgetKind::InventorySlot { binding, background_sprite, hover_sprite } => {
-                    let slot_tex_key = if is_hovered { hover_sprite } else { background_sprite };
+                WidgetKind::InventorySlot { binding, sprite, } => {
+                    let slot_tex_key = if is_hovered { format!("{}/hover", sprite) } else { format!("{}/normal", sprite) };
 
                     // Draw configured slot background grid square
                     if let Some(slot_bg) = assets::sprites::get(&slot_tex_key) {

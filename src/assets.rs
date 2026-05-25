@@ -57,9 +57,8 @@ pub fn dump_all_diagnostics() {
     TILE_DATA_REGISTRY.dump_detailed("TILE BLUEPRINTS");
     ITEM_DATA_REGISTRY.dump_detailed("ITEM DATABASE");
     MOVESET_DATA_REGISTRY.dump_detailed("MOVESET DATABASE");
-
-    // Check your dynamic UI screens to ensure widgets parsed correctly
     GUI_DATA_REGISTRY.dump_detailed("UI SCREENS"); 
+    THREE_PATCH_REGISTRY.dump_detailed("THREE PATCH WINDOWS"); 
 }
 
 impl<T: std::fmt::Debug> Registry<T> {
@@ -83,7 +82,7 @@ impl<T: std::fmt::Debug> Registry<T> {
 }
 
 // =========================================================================
-// 1. PLACEHOLDER DATA STRUCTURES (Customize these to fit your game)
+// 1. PLACEHOLDER DATA STRUCTURES (To be completed)
 // =========================================================================
 #[derive(Debug, Deserialize, Clone)]
 pub struct TileRegistryData {
@@ -116,6 +115,11 @@ pub struct UiScreenRegistryData {
     pub widgets: Vec<WidgetElement>,
 }
 
+#[derive(Debug, Deserialize, Clone)]
+pub struct ThreePatchRegistryData {
+    pub border_size: f32,
+}
+
 // =========================================================================
 // 2. GLOBAL REGISTRIES
 // =========================================================================
@@ -131,6 +135,7 @@ static SOUND_DATA_REGISTRY: Registry<SoundRegistryData> = Registry::new();
 static ITEM_DATA_REGISTRY: Registry<ItemRegistryData> = Registry::new();
 static MOVESET_DATA_REGISTRY: Registry<MovesetRegistryData> = Registry::new();
 static GUI_DATA_REGISTRY: Registry<UiScreenRegistryData> = Registry::new();
+static THREE_PATCH_REGISTRY: Registry<ThreePatchRegistryData> = Registry::new();
 
 // =========================================================================
 // 3. PUBLIC ACCESS API (e.g., assets::items::get("namespace:id"))
@@ -159,6 +164,9 @@ pub mod movesets {
 pub mod uiscreen {
     pub fn get(key: &str) -> Option<&super::UiScreenRegistryData> { super::GUI_DATA_REGISTRY.get(key) }
 }
+pub mod threepatch {
+    pub fn get(key: &str) -> Option<&super::ThreePatchRegistryData> { super::THREE_PATCH_REGISTRY.get(key) }
+}
 
 // =========================================================================
 // 4. UNIFIED PARSING ENGINE
@@ -173,6 +181,7 @@ pub fn init() {
     let mut item_datas = HashMap::new();
     let mut moveset_datas = HashMap::new();
     let mut gui_datas: HashMap<String, UiScreenRegistryData> = HashMap::new();
+    let mut three_patch_datas: HashMap<String, ThreePatchRegistryData> = HashMap::new();
 
     load_dir_recursive(
         &ASSET_DIR,
@@ -184,6 +193,7 @@ pub fn init() {
         &mut item_datas,
         &mut moveset_datas,
         &mut gui_datas,
+        &mut three_patch_datas,
     );
 
     SPRITE_REGISTRY.init(sprites);
@@ -194,6 +204,7 @@ pub fn init() {
     ITEM_DATA_REGISTRY.init(item_datas);
     MOVESET_DATA_REGISTRY.init(moveset_datas);
     GUI_DATA_REGISTRY.init(gui_datas);
+    THREE_PATCH_REGISTRY.init(three_patch_datas)
 }
 
 fn load_dir_recursive(
@@ -206,6 +217,7 @@ fn load_dir_recursive(
     item_datas: &mut HashMap<String, ItemRegistryData>,
     moveset_datas: &mut HashMap<String, MovesetRegistryData>,
     gui_datas: &mut HashMap<String, UiScreenRegistryData>,
+    three_patch_datas: &mut HashMap<String, ThreePatchRegistryData>,
 ) {
     for file in dir.files() {
         let path = file.path();
@@ -294,7 +306,13 @@ fn load_dir_recursive(
                 "ui" | "gui" | "uiscreen" | "guiscreen" => {
                     match serde_json::from_slice::<UiScreenRegistryData>(bytes) {
                         Ok(data) => { gui_datas.insert(registry_key, data); }
-                        Err(e) => eprintln!("Error parsing Moveset JSON [{}]: {}", registry_key, e),
+                        Err(e) => eprintln!("Error parsing Ui JSON [{}]: {}", registry_key, e),
+                    }
+                }
+                "threepatch" | "three_patch" | "threepatches" | "three_patches" | "window" | "windows" => {
+                    match serde_json::from_slice::<ThreePatchRegistryData>(bytes) {
+                        Ok(data) => { three_patch_datas.insert(registry_key, data); }
+                        Err(e) => eprintln!("Error parsing Three Patch JSON [{}]: {}", registry_key, e),
                     }
                 }
                 _ => {}
@@ -304,7 +322,7 @@ fn load_dir_recursive(
 
     // Recurse down into directories
     for subdir in dir.dirs() {
-        load_dir_recursive(subdir, sprites, sounds, langs, tile_datas, sound_datas, item_datas, moveset_datas, gui_datas);
+        load_dir_recursive(subdir, sprites, sounds, langs, tile_datas, sound_datas, item_datas, moveset_datas, gui_datas, three_patch_datas);
     }
 }
 
@@ -316,4 +334,5 @@ pub fn print_all() {
     println!("  Items:     {}", ITEM_DATA_REGISTRY.len());
     println!("  Movesets:  {}", MOVESET_DATA_REGISTRY.len());
     println!("  UiScreens:  {}", GUI_DATA_REGISTRY.len());
+    println!("  ThreePatches:  {}", THREE_PATCH_REGISTRY.len());
 }

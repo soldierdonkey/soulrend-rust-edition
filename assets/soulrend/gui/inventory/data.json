@@ -1,9 +1,8 @@
 {
   "window": {
     "Ui": {
-      "sprite": "soulrend:window_skin",
-      "x": 120,
-      "y": 120,
+      "sprite": "soulrend:basic",
+      "centering": "Center",
       "w": 1200,
       "h": 500
     }
@@ -16,8 +15,7 @@
           "binding": {
             "Armor": "Head"
           },
-          "background_sprite": "soulrend:gui/slot_default",
-          "hover_sprite": "soulrend:gui/slot_hover"
+          "sprite": "soulrend:gui/square_button"
         }
       }
     },
@@ -27,7 +25,12 @@
         "TextButton": {
           "text": "Close", 
           "action": "CloseCurrentMenu",
-          "normal_sprite": "soulrend:gui/square_button",
+          "slice": {
+            "sprite": "soulrend:window_skin",
+            "centering": "Center",
+            "w": 120,
+            "h": 120
+          },
           "text_color": [255, 255, 255, 255],
           "font_size": 30
         }

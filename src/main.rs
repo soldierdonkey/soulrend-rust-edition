@@ -72,6 +72,7 @@ async fn main() {
                 if is_key_pressed(KeyCode::Escape) {
                     game.current_state = GameState::InstanceManager;
                 }
+                game.render_screen("soulrend:inventory".to_string());
             }
         }
         // FPS SECTION
