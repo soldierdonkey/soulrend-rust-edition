@@ -27,9 +27,7 @@
         "TextButton": {
           "text": "Close", 
           "action": "CloseCurrentMenu",
-          "normal_sprite": "soulrend:gui/btn_normal",
-          "hover_sprite": "soulrend:gui/btn_hover",
-          "pressed_sprite": "soulrend:gui/btn_pressed",
+          "normal_sprite": "soulrend:gui/square_button",
           "text_color": [255, 255, 255, 255],
           "font_size": 30
         }
