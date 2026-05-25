@@ -44,6 +44,7 @@ async fn main() {
     // 3. Populate the global registry right after Macroquad starts up (GPU context is ready)
     assets::init();
     assets::print_all();
+    assets::dump_all_diagnostics();
     
     loop {
         // --- 1. DRAW GAME AT FIXED RESOLUTION ---
@@ -73,8 +74,10 @@ async fn main() {
                 }
             }
         }
-        let fps = macroquad::time::get_fps();
-        draw_text(&format!("FPS: {}", fps), 10.0, 230.0, 80.0, GREEN);
+        // FPS SECTION
+        // let fps = macroquad::time::get_fps();
+        // draw_text(&format!("FPS: {}", fps), 10.0, 230.0, 80.0, GREEN);
+
         // --- 2. SCALE CANVAS TO FIT WINDOW ---
         // Switch back to the default window camera
         set_default_camera();

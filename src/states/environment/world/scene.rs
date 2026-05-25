@@ -40,7 +40,7 @@ impl SceneMap {
             let mut row = Vec::with_capacity(width as usize);
             for x in 0..(width as usize) {
                 // Initialize each tile dynamically with its exact X and Y coordinates
-                row.push(Tile::new(TileType::Empty, x, y, crate::TILE_SIZE));
+                row.push(Tile::new("utility:air".to_string(), x, y, crate::TILE_SIZE));
             }
             tiles.push(row);
         }

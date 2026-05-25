@@ -13,6 +13,10 @@ pub use self::in_game::*;
 
 mod movement;
 pub use self::movement::*;
+// Import Items
+pub mod items;
+pub use self::items::*;
+
 
 // The enum must be public, and its variants are automatically public
 pub enum GameState {

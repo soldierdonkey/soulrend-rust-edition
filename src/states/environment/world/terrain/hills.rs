@@ -45,7 +45,7 @@ pub fn generate_hills(width: usize, height: usize, seed: u32) -> SceneMap {
         for y in 0..height {
             if (y as f32) > heights[x] {
                 // println!("grass! at ({}, {}) with height {}", x, y, heights[x]);
-                output_map.tiles[y][x].update(TileType::Solid("test_block:grass_block_top".to_string()));
+                output_map.tiles[y][x].update("test:grass".to_string());
             }
         }
     }

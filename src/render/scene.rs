@@ -54,13 +54,20 @@ impl SceneMap {
         for y in (start_y as usize)..(end_y as usize) {
             for x in (start_x as usize)..(end_x as usize) {
                 let tile = &self.tiles[y][x];
-                if let TileType::Empty = tile.tile_type { continue; }
-
+                let tile_type =  if let Some(tile_data) = tiles::get(&tile.tile_type) {
+                    &tile_data.tile_type
+                } else {
+                    continue
+                };
+                if tile_type == &TileType::Empty {
+                    // Skip draw step if we encounter Air.
+                    continue
+                }
                 // Translate grid indexing to logic offset bounds, then multiply by pixel scale
                 let world_x = ((x as f32 - screen_left) * crate::TILE_SIZE).round();
                 let world_y = ((y as f32 - screen_top) * crate::TILE_SIZE).round();
 
-                let sprite_key = match &tile.tile_type {
+                let sprite_key = match tile_type {
                     TileType::Solid(texture_path) => texture_path.as_str(),
                     _ => "soulrend:unknown",
                 };

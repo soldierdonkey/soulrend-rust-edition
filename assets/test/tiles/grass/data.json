@@ -1,0 +1,6 @@
+{
+    "name": "Grass",
+    "tile_type": {
+        "Solid": "test:grass"
+    }
+}
