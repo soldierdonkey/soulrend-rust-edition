@@ -2,7 +2,8 @@ use crate::assets;
 use crate::states::*;
 use crate::runtime::Runtime;
 use crate::states::menu::helper::threepatch::draw_3_patch_window;
-use crate::states::{Player, UiAction, WidgetKind, WindowType};
+use crate::states::{Player, UiAction, WindowType};
+use super::widget::*;
 use macroquad::prelude::*;
 use macroquad::math::Vec2;
 
@@ -53,86 +54,73 @@ impl Runtime {
                vec2(crate::VIRTUAL_WIDTH / 2.0, crate::VIRTUAL_HEIGHT / 2.0) 
             }
         };
-
+        click_action = self.iter_widgets(window_center, &screen.widgets);
         // 2. Loop and draw widgets based on center-relative JSON configurations
-        for widget in &screen.widgets {
+        // for widget in &screen.widgets {
             
-            // CHOICE A: True Centering (The widget's own center aligns with the window center offset)
-            let global_pos = window_center 
-                + vec2(widget.x, widget.y) 
-                - vec2(widget.w / 2.0, widget.h / 2.0);
+        //     // CHOICE A: True Centering (The widget's own center aligns with the window center offset)
+        //     let global_pos = window_center
+        //         + vec2(widget.x, widget.y) 
+        //         - vec2(widget.w / 2.0, widget.h / 2.0);
 
-            // CHOICE B: Top-Left Centering (Comment out Choice A and uncomment this if you prefer it)
-            // let global_pos = window_center + vec2(widget.x, widget.y);
+        //     // CHOICE B: Top-Left Centering (Comment out Choice A and uncomment this if you prefer it)
+        //     // let global_pos = window_center + vec2(widget.x, widget.y);
 
-            let widget_rect = Rect::new(global_pos.x, global_pos.y, widget.w, widget.h);
-            let is_hovered = widget_rect.contains(mouse);
+        //     let widget_rect = Rect::new(global_pos.x, global_pos.y, widget.w, widget.h);
+        //     let is_hovered = widget_rect.contains(mouse);
+        //     match &widget.kind {
+        //         WidgetKind::TextButton { text, action, slice, text_color, font_size } => {
+        //             // Determine appropriate state asset skin on the fly!
+        //             let sprite_key = if is_hovered && mouse_pressed {
+        //                 format!("{}/pressed", slice.sprite)
+        //             } else if is_hovered {
+        //                 format!("{}/hover", slice.sprite)
+        //             } else {
+        //                 format!("{}/normal", slice.sprite)
+        //             };
+        //             // Draw threepatch window
+        //             draw_3_patch_window(&sprite_key, Rect::new(global_pos.x, global_pos.y, widget.w, widget.h));
 
-            match &widget.kind {
-                WidgetKind::TextButton { text, action, slice, text_color, font_size } => {
-                    // Determine appropriate state asset skin on the fly!
-                    let sprite_key = if is_hovered && mouse_pressed {
-                        format!("{}/pressed", slice.sprite)
-                    } else if is_hovered {
-                        format!("{}/hover", slice.sprite)
-                    } else {
-                        format!("{}/normal", slice.sprite)
-                    };
+        //             // Render Text centered inside the button bounds
+        //             let col = Color::from_rgba(text_color[0], text_color[1], text_color[2], text_color[3]);
+        //             // Basic vertical center alignment helper math
+        //             let text_size = measure_text(&text, None, font_size.clone() as u16, 1.0);
+        //             draw_text(&text, global_pos.x + slice.w/2.0 - text_size.width/2.0, global_pos.y + slice.h/2.0 + text_size.height/2.0, font_size.clone(), col);
 
-                    // Render dynamic texture button frame
-                    if let Some(btn_tex) = assets::sprites::get(&sprite_key) {
-                        // draw_3_patch_window(slice.sprite, dest_rect, color, scale, debug_mode);
-                        draw_texture_ex(btn_tex, global_pos.x, global_pos.y, WHITE, DrawTextureParams {
-                            dest_size: Some(vec2(widget.w, widget.h)),
-                            ..Default::default()
-                        });
-                    }
+        //             if is_hovered && mouse_clicked {
+        //                 click_action = Some(action.clone());
+        //             }
+        //         }
+        //         WidgetKind::SpriteButton { action, sprite } => {
+        //             // Determine appropriate state asset skin on the fly!
+        //             let sprite_key = if is_hovered && mouse_pressed {
+        //                 format!("{}/pressed", sprite)
+        //             } else if is_hovered {
+        //                 format!("{}/hover", sprite)
+        //             } else {
+        //                 format!("{}/normal", sprite)
+        //             };
 
-                    // Render Text centered inside the button bounds
-                    let col = Color::from_rgba(text_color[0], text_color[1], text_color[2], text_color[3]);
-                    // Basic vertical center alignment helper math
-                    let text_size = measure_text(text, None, *font_size as u16, 1.0);
-                    draw_text(&text, global_pos.x + widget.w/2.0 - text_size.width/2.0, global_pos.y + widget.h/2.0 + text_size.height/2.0, *font_size, col);
+        //             // Render dynamic texture button frame
+        //             if let Some(btn_tex) = assets::sprites::get(&sprite_key) {
+        //                 draw_texture_ex(btn_tex, global_pos.x, global_pos.y, WHITE, DrawTextureParams {
+        //                     dest_size: Some(vec2(widget.w, widget.h)),
+        //                     ..Default::default()
+        //                 });
+        //             }
 
-                    if is_hovered && mouse_clicked {
-                        click_action = Some(action.clone());
-                    }
-                }
-                WidgetKind::SpriteButton { action, sprite } => {
-                    // Determine appropriate state asset skin on the fly!
-                    let sprite_key = if is_hovered && mouse_pressed {
-                        format!("{}/pressed", sprite)
-                    } else if is_hovered {
-                        format!("{}/hover", sprite)
-                    } else {
-                        format!("{}/normal", sprite)
-                    };
+        //             if is_hovered && mouse_clicked {
+        //                 click_action = Some(action.clone());
+        //             }
+        //         }
+        //         WidgetKind::InventorySlot { binding, sprite, } => {
+        //             let slot_tex_key = if is_hovered { format!("{}/hover", sprite) } else { format!("{}/normal", sprite) };
 
-                    // Render dynamic texture button frame
-                    if let Some(btn_tex) = assets::sprites::get(&sprite_key) {
-                        draw_texture_ex(btn_tex, global_pos.x, global_pos.y, WHITE, DrawTextureParams {
-                            dest_size: Some(vec2(widget.w, widget.h)),
-                            ..Default::default()
-                        });
-                    }
-
-                    if is_hovered && mouse_clicked {
-                        click_action = Some(action.clone());
-                    }
-                }
-                WidgetKind::InventorySlot { binding, sprite, } => {
-                    let slot_tex_key = if is_hovered { format!("{}/hover", sprite) } else { format!("{}/normal", sprite) };
-
-                    // Draw configured slot background grid square
-                    if let Some(slot_bg) = assets::sprites::get(&slot_tex_key) {
-                        draw_texture_ex(slot_bg, global_pos.x, global_pos.y, WHITE, DrawTextureParams {
-                            dest_size: Some(vec2(widget.w, widget.h)),
-                            ..Default::default()
-                        });
-                    }
-                }
-            }
-        }
+        //             // Draw threepatch window
+        //             draw_3_patch_window(&slot_tex_key, Rect::new(global_pos.x, global_pos.y, crate::ITEM_SIZE, crate::ITEM_SIZE));
+        //         }
+        //     }
+        // }
 
         self.process_ui_action(&click_action);
         click_action

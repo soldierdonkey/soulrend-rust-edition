@@ -35,12 +35,11 @@ pub fn draw_3_patch_window(
     let dynamic_w = w - (c_size * 2.0);
     let dynamic_h = h - (c_size * 2.0);
 
-    // if debug_mode {
-    //     println!("--- 3-Patch Scaled Telemetry ---");
-    //     println!("Scale Factor: {}x, {}x", c_size, s_thick);
-    //     println!("Scaled Corner Size: {}, Scaled Side Thickness: {}", c_size, s_thick);
-    //     println!("Dynamic Fill Workspace: {}x{}", dynamic_w, dynamic_h);
-    // }
+    if *crate::DEBUG.lock().unwrap() {
+        println!("--- 3-Patch Scaled Telemetry ---");
+        println!("Scaled Corner Size: {}, Scaled Side Thickness: {}", c_size, s_thick);
+        println!("Dynamic Fill Workspace: {}x{}", dynamic_w, dynamic_h);
+    }
 
     // =========================================================================
     // 1. DRAW THE CENTER

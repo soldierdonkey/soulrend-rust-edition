@@ -1,5 +1,5 @@
 // states.rs
-mod menu;
+pub mod menu;
 pub use self::menu::*;
 
 mod player;

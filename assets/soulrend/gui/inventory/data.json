@@ -1,40 +1,87 @@
 {
   "window": {
     "Ui": {
-      "sprite": "soulrend:basic",
+      "sprite": "soulrend:button/normal",
       "centering": "Center",
       "w": 1200,
-      "h": 500
+      "h": 600
     }
   },
-  "widgets": [
-    {
-      "x": 0, "y": 0, "w": 36, "h": 36,
-      "kind": {
-        "InventorySlot": { 
-          "binding": {
-            "Armor": "Head"
-          },
-          "sprite": "soulrend:gui/square_button"
+  "widgets": {
+    "list": [
+      {
+        "x": -510, "y": 0, "w": 120, "h": 540,
+        "kind": {
+          "Group": {
+            "widgets": {
+              "list": [
+                {
+                  "x": 0, "y": -210, "w": 120, "h": 120,
+                  "kind": {
+                    "InventorySlot": { 
+                      "binding": {
+                        "Armor": "Head"
+                      },
+                      "sprite": "soulrend:button"
+                    }
+                  }
+                },
+                {
+                  "x": 0, "y": -70, "w": 120, "h": 120,
+                  "kind": {
+                    "InventorySlot": { 
+                      "binding": {
+                        "Armor": "Chest"
+                      },
+                      "sprite": "soulrend:button"
+                    }
+                  }
+                },
+                {
+                  "x": 0, "y": 70, "w": 120, "h": 120,
+                  "kind": {
+                    "InventorySlot": { 
+                      "binding": {
+                        "Armor": "Legs"
+                      },
+                      "sprite": "soulrend:button"
+                    }
+                  }
+                },
+                {
+                  "x": 0, "y": 210, "w": 120, "h": 120,
+                  "kind": {
+                    "InventorySlot": { 
+                      "binding": {
+                        "Armor": "Feet"
+                      },
+                      "sprite": "soulrend:button"
+                    }
+                  }
+                }
+              ]
+            },
+            "background_type": "None"
+          }
+        }
+      },
+      {
+        "x": 120, "y": 120, "w": 240, "h": 120,
+        "kind": {
+          "TextButton": {
+            "text": "Close", 
+            "action": "CloseCurrentMenu",
+            "slice": {
+              "sprite": "soulrend:button",
+              "centering": "Widget",
+              "w": 240,
+              "h": 120
+            },
+            "text_color": [255, 255, 255, 255],
+            "font_size": 60
+          }
         }
       }
-    },
-    {
-      "x": 120, "y": 120, "w": 120, "h": 120,
-      "kind": {
-        "TextButton": {
-          "text": "Close", 
-          "action": "CloseCurrentMenu",
-          "slice": {
-            "sprite": "soulrend:window_skin",
-            "centering": "Center",
-            "w": 120,
-            "h": 120
-          },
-          "text_color": [255, 255, 255, 255],
-          "font_size": 30
-        }
-      }
-    }
-  ]
+    ]
+  }
 }

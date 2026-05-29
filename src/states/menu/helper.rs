@@ -1,5 +1,6 @@
-mod screen;
-mod threepatch;
+pub mod screen;
+pub mod widget;
+pub mod threepatch;
 use serde::Deserialize;
 use macroquad::prelude::Vec2;
 use macroquad::prelude::Rect;
@@ -13,8 +14,9 @@ pub enum WindowType {
 }
 #[derive(Debug, Deserialize, Clone)]
 pub enum Centering {
-    Center,
-    Coordinates(f32, f32)
+    Center, // Do not use for widgets!
+    Coordinates(f32, f32),
+    Widget
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -43,34 +45,10 @@ impl UiSliceConfig {
         let (x, y) = self.get_coordinates().into();
         Rect::new(x, y , self.w, self.h)
     }
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct WidgetElement {
-    pub x: f32,
-    pub y: f32,
-    pub w: f32,
-    pub h: f32,
-    pub kind: WidgetKind,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub enum WidgetKind {
-    TextButton { 
-        text: String, 
-        action: UiAction,
-        slice: UiSliceConfig,
-        text_color: [u8; 4], // RGBA format
-        font_size: f32
-    },
-    SpriteButton {
-        action: UiAction,
-        sprite: String,
-    },
-    InventorySlot { 
-        binding: SlotBinding,
-        sprite: String,
-    },
+    pub fn get_rel_rect(&self, coordinates: Vec2) -> Rect {
+        let (x, y) = self.get_coordinates().into();
+        Rect::new(coordinates.x + x, coordinates.y + y, self.w, self.h)
+    }
 }
 
 /// All possible actions a UI button can execute

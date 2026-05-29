@@ -1,6 +1,7 @@
 
 // load Macroquad
 use macroquad::prelude::*;
+use std::sync::Mutex;
 
 mod states;
 use states::*;
@@ -23,7 +24,8 @@ const VIRTUAL_HEIGHT: f32 = 1080.0;
 pub const LOGICAL_WIDTH: f32 = 1920.0;
 pub const LOGICAL_HEIGHT: f32 = 1080.0;
 const TILE_SIZE: f32 = 128.0;
-
+pub const ITEM_SIZE: f32 = 120.0;
+static DEBUG: Mutex<bool> = Mutex::new(false);
 
 
 #[macroquad::main("Soulrend Rust Edition")]
@@ -47,6 +49,10 @@ async fn main() {
     assets::dump_all_diagnostics();
     
     loop {
+        {
+            let mut debug = DEBUG.lock().unwrap(); // Lock to get mutable access
+            *debug = is_key_pressed(KeyCode::Period);
+        }
         // --- 1. DRAW GAME AT FIXED RESOLUTION ---
         // Switch rendering to our virtual canvas
         set_camera(&game_camera);

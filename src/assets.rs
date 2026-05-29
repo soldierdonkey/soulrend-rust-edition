@@ -4,7 +4,9 @@ use serde::Deserialize;
 use std::collections::HashMap;
 use std::sync::OnceLock;
 
-use crate::states::{TileType, UiSliceConfig, WidgetElement, WindowType};
+use crate::states::widget::WidgetList;
+use crate::states::{TileType, UiSliceConfig, WindowType};
+use crate::states::menu::helper::*;
 
 // Embed the unified assets directory at compile time
 static ASSET_DIR: Dir = include_dir!("$CARGO_MANIFEST_DIR/assets");
@@ -112,7 +114,7 @@ pub struct MovesetRegistryData {
 #[derive(Debug, Deserialize, Clone)]
 pub struct UiScreenRegistryData {
     pub window: WindowType,
-    pub widgets: Vec<WidgetElement>,
+    pub widgets: WidgetList,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -276,7 +278,6 @@ fn load_dir_recursive(
                 "json" => {} // Route down to structured data parsing below
                 _ => continue, // Unknown extension types safely skipped
             };
-
             // Structured JSON Data Registry Deserialization Routing
             match asset_type.as_str() {
                 "tile" | "tiles" => {
