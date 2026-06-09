@@ -35,7 +35,7 @@ pub fn draw_3_patch_window(
     let dynamic_w = w - (c_size * 2.0);
     let dynamic_h = h - (c_size * 2.0);
 
-    if *crate::DEBUG.lock().unwrap() {
+    if crate::debug::debug_frame() {
         println!("--- 3-Patch Scaled Telemetry ---");
         println!("Scaled Corner Size: {}, Scaled Side Thickness: {}", c_size, s_thick);
         println!("Dynamic Fill Workspace: {}x{}", dynamic_w, dynamic_h);

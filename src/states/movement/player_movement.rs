@@ -4,6 +4,6 @@ use crate::states::environment::scene::*;
 
 impl Player {
     pub fn move_player(&mut self, scene: &SceneMap, delta_time: f32) {
-        self.movement.update(&self.inputs, scene, delta_time);
+        self.movement.update(&self.actions, scene, delta_time);
     }
 }

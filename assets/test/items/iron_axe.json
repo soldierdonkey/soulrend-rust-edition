@@ -1,0 +1,11 @@
+{
+    "name": "Iron Axe",
+    "sprite": "test:iron_axe",
+    "item_type": {
+        "Weapon": {
+            "weight_index": 1.5,
+            "moveset": "soulrend:movesets/axe"
+        }
+    },
+    "rarity": "Common"
+}

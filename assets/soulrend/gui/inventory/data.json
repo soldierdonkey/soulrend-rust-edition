@@ -3,22 +3,40 @@
     "Ui": {
       "sprite": "soulrend:button/normal",
       "centering": "Center",
-      "w": 1200,
-      "h": 600
+      "w": 1300,
+      "h": 840
     }
   },
   "widgets": {
     "list": [
       {
-        "x": -510, "y": 0, "w": 120, "h": 540,
+        "position": {
+          "Coordinates": [
+            -560,
+            -120
+          ]
+        },
+        "size": [
+          120,
+          540
+        ],
         "kind": {
           "Group": {
             "widgets": {
               "list": [
                 {
-                  "x": 0, "y": -210, "w": 120, "h": 120,
+                  "position": {
+                    "Coordinates": [
+                      0,
+                      -210
+                    ]
+                  },
+                  "size": [
+                    120,
+                    120
+                  ],
                   "kind": {
-                    "InventorySlot": { 
+                    "InventorySlot": {
                       "binding": {
                         "Armor": "Head"
                       },
@@ -27,9 +45,18 @@
                   }
                 },
                 {
-                  "x": 0, "y": -70, "w": 120, "h": 120,
+                  "position": {
+                    "Coordinates": [
+                      0,
+                      -70
+                    ]
+                  },
+                  "size": [
+                    120,
+                    120
+                  ],
                   "kind": {
-                    "InventorySlot": { 
+                    "InventorySlot": {
                       "binding": {
                         "Armor": "Chest"
                       },
@@ -38,9 +65,18 @@
                   }
                 },
                 {
-                  "x": 0, "y": 70, "w": 120, "h": 120,
+                  "position": {
+                    "Coordinates": [
+                      0,
+                      70
+                    ]
+                  },
+                  "size": [
+                    120,
+                    120
+                  ],
                   "kind": {
-                    "InventorySlot": { 
+                    "InventorySlot": {
                       "binding": {
                         "Armor": "Legs"
                       },
@@ -49,9 +85,18 @@
                   }
                 },
                 {
-                  "x": 0, "y": 210, "w": 120, "h": 120,
+                  "position": {
+                    "Coordinates": [
+                      0,
+                      210
+                    ]
+                  },
+                  "size": [
+                    120,
+                    120
+                  ],
                   "kind": {
-                    "InventorySlot": { 
+                    "InventorySlot": {
                       "binding": {
                         "Armor": "Feet"
                       },
@@ -66,19 +111,242 @@
         }
       },
       {
-        "x": 120, "y": 120, "w": 240, "h": 120,
+        "position": {
+          "Coordinates": [
+            0,
+            330
+          ]
+        },
+        "size": [
+          120,
+          540
+        ],
+        "kind": {
+          "Group": {
+            "widgets": {
+              "list": [
+                {
+                  "position": {
+                    "Coordinates": [
+                      -560,
+                      0
+                    ]
+                  },
+                  "size": [
+                    120,
+                    120
+                  ],
+                  "kind": {
+                    "InventorySlot": {
+                      "binding": {
+                        "Hotbar": 0
+                      },
+                      "sprite": "soulrend:button"
+                    }
+                  }
+                },
+                {
+                  "position": {
+                    "Coordinates": [
+                      -420,
+                      0
+                    ]
+                  },
+                  "size": [
+                    120,
+                    120
+                  ],
+                  "kind": {
+                    "InventorySlot": {
+                      "binding": {
+                        "Hotbar": 1
+                      },
+                      "sprite": "soulrend:button"
+                    }
+                  }
+                },
+                {
+                  "position": {
+                    "Coordinates": [
+                      -280,
+                      0
+                    ]
+                  },
+                  "size": [
+                    120,
+                    120
+                  ],
+                  "kind": {
+                    "InventorySlot": {
+                      "binding": {
+                        "Hotbar": 2
+                      },
+                      "sprite": "soulrend:button"
+                    }
+                  }
+                },
+                {
+                  "position": {
+                    "Coordinates": [
+                      -140,
+                      0
+                    ]
+                  },
+                  "size": [
+                    120,
+                    120
+                  ],
+                  "kind": {
+                    "InventorySlot": {
+                      "binding": {
+                        "Hotbar": 3
+                      },
+                      "sprite": "soulrend:button"
+                    }
+                  }
+                },
+                {
+                  "position": {
+                    "Coordinates": [
+                      0,
+                      0
+                    ]
+                  },
+                  "size": [
+                    120,
+                    120
+                  ],
+                  "kind": {
+                    "InventorySlot": {
+                      "binding": {
+                        "Hotbar": 4
+                      },
+                      "sprite": "soulrend:button"
+                    }
+                  }
+                },
+                {
+                  "position": {
+                    "Coordinates": [
+                      140,
+                      0
+                    ]
+                  },
+                  "size": [
+                    120,
+                    120
+                  ],
+                  "kind": {
+                    "InventorySlot": {
+                      "binding": {
+                        "Hotbar": 5
+                      },
+                      "sprite": "soulrend:button"
+                    }
+                  }
+                },
+                {
+                  "position": {
+                    "Coordinates": [
+                      280,
+                      0
+                    ]
+                  },
+                  "size": [
+                    120,
+                    120
+                  ],
+                  "kind": {
+                    "InventorySlot": {
+                      "binding": {
+                        "Hotbar": 6
+                      },
+                      "sprite": "soulrend:button"
+                    }
+                  }
+                },
+                {
+                  "position": {
+                    "Coordinates": [
+                      420,
+                      0
+                    ]
+                  },
+                  "size": [
+                    120,
+                    120
+                  ],
+                  "kind": {
+                    "InventorySlot": {
+                      "binding": {
+                        "Hotbar": 7
+                      },
+                      "sprite": "soulrend:button"
+                    }
+                  }
+                },
+                {
+                  "position": {
+                    "Coordinates": [
+                      560,
+                      0
+                    ]
+                  },
+                  "size": [
+                    120,
+                    120
+                  ],
+                  "kind": {
+                    "InventorySlot": {
+                      "binding": {
+                        "Hotbar": 8
+                      },
+                      "sprite": "soulrend:button"
+                    }
+                  }
+                }
+              ]
+            },
+            "background_type": "None"
+          }
+        }
+      },
+      {
+        "position": {
+          "Coordinates": [
+            120,
+            120
+          ]
+        },
+        "size": [
+          240,
+          120
+        ],
         "kind": {
           "TextButton": {
-            "text": "Close", 
+            "text": "Close",
             "action": "CloseCurrentMenu",
-            "slice": {
-              "sprite": "soulrend:button",
-              "centering": "Widget",
-              "w": 240,
-              "h": 120
-            },
-            "text_color": [255, 255, 255, 255],
+            "slice": "soulrend:button",
+            "text_color": [
+              255,
+              255,
+              255,
+              255
+            ],
             "font_size": 60
+          }
+        }
+      },
+      {
+        "position": "Mouse",
+        "size": [
+          120,
+          120
+        ],
+        "kind": {
+          "InventorySlot": {
+            "binding": "Mouse",
+            "disabled": true
           }
         }
       }

@@ -1,3 +1,6 @@
+use serde::Deserialize;
+
+#[derive(Debug, Deserialize, Clone)]
 pub enum Rarity {
     // Linear gear progression
     Common, // Basic items with no special properties. These are the most common and least powerful items in the game.

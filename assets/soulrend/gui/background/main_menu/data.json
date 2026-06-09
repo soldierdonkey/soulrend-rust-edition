@@ -5,7 +5,10 @@
   "widgets": {
     "list": [
       {
-        "x": 0, "y": 300, "w": 960, "h": 240,
+        "position": {
+          "Coordinates" : [0, 300]
+        },
+        "size" : [960, 240],
         "kind": {
           "SpriteButton": {
             "action": "EnterInstanceManager",

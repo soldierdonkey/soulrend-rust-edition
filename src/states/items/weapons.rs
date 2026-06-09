@@ -1,15 +1,20 @@
+use serde::Deserialize;
+
 use crate::states::{Affix, AffixList, items::rarity::Rarity};
+
+#[derive(Debug)]
 pub struct WeaponData {
-    pub rarity: Rarity,
-    pub id: String,
     pub affixes: AffixList
 }
+
+#[derive(Debug, Deserialize, Clone)]
 pub struct WeaponType {
     pub weight_index: f32,
     // Damage and attack speed are calculated from here
     // damage_scale * attack_speed_scale = 1
     // Examples
     // 0.5 = dagger, 0.67 = shortsword, 1 = standard sword. 1.5 = longsword. 2 = hammer/bastard sword.
+    pub moveset: String // Lookup for ID
 }
 pub struct WeaponMoveset {
     pub main_moves: Vec<WeaponMove>,

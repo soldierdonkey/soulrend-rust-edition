@@ -1,10 +1,13 @@
 pub mod screen;
 pub mod widget;
 pub mod threepatch;
+use macroquad::math::vec2;
 use serde::Deserialize;
 use macroquad::prelude::Vec2;
 use macroquad::prelude::Rect;
+use crate::runtime::get_mouse_position;
 use crate::states::ArmorSlot;
+use crate::states::SlotBinding;
 
 #[derive(Debug, Deserialize, Clone)]
 pub enum WindowType {
@@ -16,7 +19,21 @@ pub enum WindowType {
 pub enum Centering {
     Center, // Do not use for widgets!
     Coordinates(f32, f32),
-    Widget
+    Mouse
+}
+
+pub fn centering_to_coordinates(centering: &Centering, size: Vec2, position: Vec2) -> Vec2 {
+    match centering {
+        Centering::Center => {
+            Vec2::new(crate::LOGICAL_WIDTH/2.0-size.x/2.0, crate::LOGICAL_HEIGHT/2.0-size.y/2.0)
+        }
+        Centering::Coordinates(x, y) => {
+            Vec2::new(*x, *y)-size/2.0+position
+        }
+        Centering::Mouse => {
+            get_mouse_position()-size/2.0
+        }
+    }
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -29,17 +46,7 @@ pub struct UiSliceConfig {
 
 impl UiSliceConfig {
     pub fn get_coordinates(&self) -> Vec2 {
-        match self.centering {
-            Centering::Center => {
-                Vec2::new(crate::LOGICAL_WIDTH/2.0-self.w/2.0, crate::LOGICAL_HEIGHT/2.0-self.h/2.0)
-            }
-            Centering::Coordinates(x, y) => {
-                Vec2::new(x, y)
-            }
-            _ => {
-                panic!("Centering Style for UiSliceConfig with sprite: {} unsuccesfully matched: {:#?}", self.sprite, self.centering)
-            }
-        }
+        centering_to_coordinates(&self.centering, Vec2::new(self.w, self.h), Vec2::new(crate::LOGICAL_WIDTH/2.0, crate::LOGICAL_HEIGHT/2.0))
     }
     pub fn get_win_rect(&self) -> Rect {
         let (x, y) = self.get_coordinates().into();
@@ -56,13 +63,6 @@ impl UiSliceConfig {
 pub enum UiAction {
     CloseCurrentMenu,
     EnterInstanceManager,
+    SwitchItemWithMouse(SlotBinding),
     OpenMenu(String),
-}
-
-/// Identifiers mapping UI slots straight to actual live player equipment states
-#[derive(Debug, Deserialize, Clone, PartialEq, Eq, Hash)]
-pub enum SlotBinding {
-    Armor(ArmorSlot),
-    Hotbar(usize, usize),
-    Inventory(usize, usize)
 }

@@ -4,9 +4,13 @@ use serde::Deserialize;
 use std::collections::HashMap;
 use std::sync::OnceLock;
 
+use crate::helper::levenshtein::levenshtein;
 use crate::states::widget::WidgetList;
 use crate::states::{TileType, UiSliceConfig, WindowType};
-use crate::states::menu::helper::*;
+use crate::states::items::ItemRegistryData;
+
+mod sprite_modularity;
+use crate::assets::sprite_modularity::*;
 
 // Embed the unified assets directory at compile time
 static ASSET_DIR: Dir = include_dir!("$CARGO_MANIFEST_DIR/assets");
@@ -35,7 +39,7 @@ impl<T> Registry<T> {
         if let Some(map) = self.inner.get() {
             println!("=== 📦 REGISTRY KEY DUMP: {} ({} items) ===", registry_name, map.len());
             let mut keys: Vec<&String> = map.keys().collect();
-            keys.sort(); // Keep it alphabetical for easy parsing
+            keys.sort(); 
             for key in keys {
                 println!("  - {}", key);
             }
@@ -44,27 +48,18 @@ impl<T> Registry<T> {
             println!("⚠️ Registry '{}' is currently uninitialized.", registry_name);
         }
     }
-}
-
-pub fn dump_all_diagnostics() {
-    println!("\n🚀 --- INITIATING ALL REGISTRY DIAGNOSTIC SYSTEM DUMPS --- 🚀\n");
-
-    // Media assets only need key verification so you know the layout paths resolved
-    SPRITE_REGISTRY.dump_keys("SPRITES");
-    SOUND_REGISTRY.dump_keys("SOUND AUDIO");
-    LANG_REGISTRY.dump_keys("LANGUAGE FILES");
-
-    // Structured records benefit from checking properties like alignments or costs
-    SOUND_DATA_REGISTRY.dump_detailed("SOUND DATA");
-    TILE_DATA_REGISTRY.dump_detailed("TILE BLUEPRINTS");
-    ITEM_DATA_REGISTRY.dump_detailed("ITEM DATABASE");
-    MOVESET_DATA_REGISTRY.dump_detailed("MOVESET DATABASE");
-    GUI_DATA_REGISTRY.dump_detailed("UI SCREENS"); 
-    THREE_PATCH_REGISTRY.dump_detailed("THREE PATCH WINDOWS"); 
+    pub fn find_similar(&self, key: &str, limit: usize) -> Vec<String> {
+        let Some(map) = self.inner.get() else { return vec![]; };
+        let mut distances: Vec<(&String, usize)> = map.keys()
+            .map(|k| (k, levenshtein(k, key)))
+            .collect();
+        
+        distances.sort_by_key(|&(_, dist)| dist);
+        distances.into_iter().take(limit).map(|(k, _)| k.clone()).collect()
+    }
 }
 
 impl<T: std::fmt::Debug> Registry<T> {
-    /// Prints out keys along with their fully formatted internal structural data values
     pub fn dump_detailed(&self, registry_name: &str) {
         if let Some(map) = self.inner.get() {
             println!("=== 🔍 REGISTRY DETAILED STRUCT DUMP: {} ===", registry_name);
@@ -72,7 +67,6 @@ impl<T: std::fmt::Debug> Registry<T> {
             keys.sort();
             for key in keys {
                 if let Some(value) = map.get(key) {
-                    // {:#?} prints the struct neatly indented across multiple lines
                     println!("  ▶ [{}] => {:#?}", key, value);
                 }
             }
@@ -84,7 +78,7 @@ impl<T: std::fmt::Debug> Registry<T> {
 }
 
 // =========================================================================
-// 1. PLACEHOLDER DATA STRUCTURES (To be completed)
+// 1. DATA STRUCTURES
 // =========================================================================
 #[derive(Debug, Deserialize, Clone)]
 pub struct TileRegistryData {
@@ -96,13 +90,6 @@ pub struct TileRegistryData {
 pub struct SoundRegistryData {
     pub volume: f32,
     pub pitch_variance: f32,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct ItemRegistryData {
-    pub name: String,
-    pub attack_power: f32,
-    pub durability: u16,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -123,217 +110,274 @@ pub struct ThreePatchRegistryData {
 }
 
 // =========================================================================
-// 2. GLOBAL REGISTRIES
+// 2. UNIFIED REGISTRY ENGINE MACRO
 // =========================================================================
+macro_rules! declare_registries {
+    (
+        custom_assets: {
+            $(
+                $asset_name:ident : $asset_type:ty => {
+                    static: $asset_static:ident,
+                    mod: $asset_mod:ident,
+                    label: $asset_label:literal,
+                    extensions: [$($ext:literal),+],
+                    dump: $asset_dump_method:ident ($asset_dump_name:literal),
+                    parse: |$bytes_ident:ident, $path_ident:ident| $parse_expr:expr
+                }
+            ),* $(,)?
+        },
+        json_data: {
+            $(
+                $data_name:ident : $data_type:ty => {
+                    static: $data_static:ident,
+                    mod: $data_mod:ident,
+                    label: $data_label:literal,
+                    folders: [$($folder:literal),+],
+                    dump: $data_dump_method:ident ($data_dump_name:literal),
+                }
+            ),* $(,)?
+        }
+    ) => {
+        // Generate global underlying static records
+        $( static $asset_static: Registry<$asset_type> = Registry::new(); )*
+        $( static $data_static: Registry<$data_type> = Registry::new(); )*
 
-// Asset Registries
-static SPRITE_REGISTRY: Registry<Texture2D> = Registry::new();
-static SOUND_REGISTRY: Registry<Vec<u8>> = Registry::new();
-static LANG_REGISTRY: Registry<String> = Registry::new();
+        // Generate public APIs dynamically (e.g. sprites::get)
+        $(
+            pub mod $asset_mod {
+                use super::*; 
+                pub fn get(key: &str) -> Option<&$asset_type> {
+                    $asset_static.get(key)
+                }
+                pub fn find_similar(key: &str) -> Vec<String> { $asset_static.find_similar(key, 3) }
+            }
+        )*
+        $(
+            pub mod $data_mod {
+                use super::*; 
+                pub fn get(key: &str) -> Option<&$data_type> {
+                    $data_static.get(key)
+                }
+                pub fn find_similar(key: &str) -> Vec<String> { $data_static.find_similar(key, 3) }
+            }
+        )*
 
-// Data Registries
-static TILE_DATA_REGISTRY: Registry<TileRegistryData> = Registry::new();
-static SOUND_DATA_REGISTRY: Registry<SoundRegistryData> = Registry::new();
-static ITEM_DATA_REGISTRY: Registry<ItemRegistryData> = Registry::new();
-static MOVESET_DATA_REGISTRY: Registry<MovesetRegistryData> = Registry::new();
-static GUI_DATA_REGISTRY: Registry<UiScreenRegistryData> = Registry::new();
-static THREE_PATCH_REGISTRY: Registry<ThreePatchRegistryData> = Registry::new();
+        // An internal context structure to pass maps cleanly down the recursive loop
+        struct RegistryContext {
+            $( $asset_name: HashMap<String, $asset_type>, )*
+            $( $data_name: HashMap<String, $data_type>, )*
+        }
 
-// =========================================================================
-// 3. PUBLIC ACCESS API (e.g., assets::items::get("namespace:id"))
-// =========================================================================
-pub mod sprites {
-    pub fn get(key: &str) -> Option<&macroquad::prelude::Texture2D> { super::SPRITE_REGISTRY.get(key) }
-}
-pub mod sounds {
-    pub fn get(key: &str) -> Option<&Vec<u8>> { super::SOUND_REGISTRY.get(key) }
-}
-pub mod langs {
-    pub fn get(key: &str) -> Option<&String> { super::LANG_REGISTRY.get(key) }
-}
-pub mod tiles {
-    pub fn get(key: &str) -> Option<&super::TileRegistryData> { super::TILE_DATA_REGISTRY.get(key) }
-}
-pub mod sound_data {
-    pub fn get(key: &str) -> Option<&super::SoundRegistryData> { super::SOUND_DATA_REGISTRY.get(key) }
-}
-pub mod items {
-    pub fn get(key: &str) -> Option<&super::ItemRegistryData> { super::ITEM_DATA_REGISTRY.get(key) }
-}
-pub mod movesets {
-    pub fn get(key: &str) -> Option<&super::MovesetRegistryData> { super::MOVESET_DATA_REGISTRY.get(key) }
-}
-pub mod uiscreen {
-    pub fn get(key: &str) -> Option<&super::UiScreenRegistryData> { super::GUI_DATA_REGISTRY.get(key) }
-}
-pub mod threepatch {
-    pub fn get(key: &str) -> Option<&super::ThreePatchRegistryData> { super::THREE_PATCH_REGISTRY.get(key) }
-}
-
-// =========================================================================
-// 4. UNIFIED PARSING ENGINE
-// =========================================================================
-pub fn init() {
-    let mut sprites = HashMap::new();
-    let mut sounds = HashMap::new();
-    let mut langs = HashMap::new();
-    
-    let mut tile_datas = HashMap::new();
-    let mut sound_datas = HashMap::new();
-    let mut item_datas = HashMap::new();
-    let mut moveset_datas = HashMap::new();
-    let mut gui_datas: HashMap<String, UiScreenRegistryData> = HashMap::new();
-    let mut three_patch_datas: HashMap<String, ThreePatchRegistryData> = HashMap::new();
-
-    load_dir_recursive(
-        &ASSET_DIR,
-        &mut sprites,
-        &mut sounds,
-        &mut langs,
-        &mut tile_datas,
-        &mut sound_datas,
-        &mut item_datas,
-        &mut moveset_datas,
-        &mut gui_datas,
-        &mut three_patch_datas,
-    );
-
-    SPRITE_REGISTRY.init(sprites);
-    SOUND_REGISTRY.init(sounds);
-    LANG_REGISTRY.init(langs);
-    TILE_DATA_REGISTRY.init(tile_datas);
-    SOUND_DATA_REGISTRY.init(sound_datas);
-    ITEM_DATA_REGISTRY.init(item_datas);
-    MOVESET_DATA_REGISTRY.init(moveset_datas);
-    GUI_DATA_REGISTRY.init(gui_datas);
-    THREE_PATCH_REGISTRY.init(three_patch_datas)
-}
-
-fn load_dir_recursive(
-    dir: &Dir,
-    sprites: &mut HashMap<String, Texture2D>,
-    sounds: &mut HashMap<String, Vec<u8>>,
-    langs: &mut HashMap<String, String>,
-    tile_datas: &mut HashMap<String, TileRegistryData>,
-    sound_datas: &mut HashMap<String, SoundRegistryData>,
-    item_datas: &mut HashMap<String, ItemRegistryData>,
-    moveset_datas: &mut HashMap<String, MovesetRegistryData>,
-    gui_datas: &mut HashMap<String, UiScreenRegistryData>,
-    three_patch_datas: &mut HashMap<String, ThreePatchRegistryData>,
-) {
-    for file in dir.files() {
-        let path = file.path();
-        
-        let parts: Vec<String> = path
-            .components()
-            .map(|c| c.as_os_str().to_string_lossy().into_owned())
-            .collect();
-
-        // Must follow structure: namespace / asset_type / resources...
-        if parts.len() >= 3 {
-            let namespace = &parts[0];
-            let asset_type = &parts[1];
-
-            // Isolate everything after "namespace/asset_type/"
-            let rel_components = &parts[2..];
-            if rel_components.is_empty() { continue; }
-
-            // Extract tracking properties safely
-            let file_name_with_ext = rel_components.last().unwrap();
-            let file_path_util = std::path::Path::new(file_name_with_ext);
-            let file_stem = file_path_util.file_stem().and_then(|s| s.to_str()).unwrap_or("");
-            let extension = path.extension().and_then(|s| s.to_str()).unwrap_or("");
-
-            // Determine structural contextual ID (Drop "main" / "data" roots, keep specialized variants)
-            let id_str = if file_stem == "main" || file_stem == "data" {
-                let parent_components = &rel_components[0..rel_components.len() - 1];
-                parent_components.join("/")
-            } else {
-                let mut modified_components = rel_components.to_vec();
-                modified_components[rel_components.len() - 1] = file_stem.to_string();
-                modified_components.join("/")
+        pub fn init() {
+            let mut ctx = RegistryContext {
+                $( $asset_name: HashMap::new(), )*
+                $( $data_name: HashMap::new(), )*
             };
 
-            let registry_key = format!("{}:{}", namespace, id_str);
-            let bytes = file.contents();
+            load_dir_recursive(&ASSET_DIR, &mut ctx);
 
-            // Direct Media Asset Routing
-            match extension {
-                "png" => {
-                    let texture = Texture2D::from_file_with_format(bytes, Some(ImageFormat::Png));
-                    texture.set_filter(FilterMode::Nearest);
-                    sprites.insert(registry_key, texture);
-                    continue; // Media matched, skip JSON checks
-                }
-                "wav" | "ogg" => {
-                    sounds.insert(registry_key, bytes.to_vec());
-                    continue; 
-                }
-                "lang" => {
-                    if let Ok(text) = String::from_utf8(bytes.to_vec()) {
-                        langs.insert(registry_key, text);
+            // =============================================
+            // THIS PART IS HARDCODED, LOADS MODULAR SPRITES
+            // =============================================
+            for (modular_sprite_id, modular_sprite) in &ctx.modularsprite {
+                ctx.sprites.insert(
+                    modular_sprite_id.clone(),
+                    modular_sprite.init()
+                );
+            }
+            // =============================================
+            //              END OF HARDCODING
+            // =============================================
+
+            $( $asset_static.init(ctx.$asset_name); )*
+            $( $data_static.init(ctx.$data_name); )*
+        }
+
+        fn load_dir_recursive(dir: &Dir, ctx: &mut RegistryContext) {
+            for file in dir.files() {
+                let path = file.path();
+                let parts: Vec<String> = path
+                    .components()
+                    .map(|c| c.as_os_str().to_string_lossy().into_owned())
+                    .collect();
+
+                if parts.len() >= 3 {
+                    let namespace = &parts[0];
+                    let asset_type = &parts[1];
+                    let rel_components = &parts[2..];
+                    if rel_components.is_empty() { continue; }
+
+                    let file_name_with_ext = rel_components.last().unwrap();
+                    let file_path_util = std::path::Path::new(file_name_with_ext);
+                    let file_stem = file_path_util.file_stem().and_then(|s| s.to_str()).unwrap_or("");
+                    let extension = path.extension().and_then(|s| s.to_str()).unwrap_or("");
+
+                    let id_str = if file_stem == "main" || file_stem == "data" {
+                        let parent_components = &rel_components[0..rel_components.len() - 1];
+                        parent_components.join("/")
+                    } else {
+                        let mut modified_components = rel_components.to_vec();
+                        modified_components[rel_components.len() - 1] = file_stem.to_string();
+                        modified_components.join("/")
+                    };
+
+                    let registry_key = format!("{}:{}", namespace, id_str);
+                    let bytes = file.contents();
+
+                    // Media Asset Routing Engine
+                    $(
+                        if $( extension == $ext )||* {
+                            let parse_closure = |$bytes_ident: &[u8], $path_ident: &std::path::Path| -> Option<$asset_type> {
+                                $parse_expr
+                            };
+                            if let Some(parsed_val) = parse_closure(bytes, path) {
+                                ctx.$asset_name.insert(registry_key, parsed_val);
+                            }
+                            continue;
+                        }
+                    )*
+
+                    if extension != "json" { continue; }
+
+                    // Structured JSON Data Deserialization Engine
+                    match asset_type.as_str() {
+                        $(
+                            $( $folder )|* => {
+                                match serde_json::from_slice::<$data_type>(bytes) {
+                                    Ok(data) => { ctx.$data_name.insert(registry_key, data); }
+                                    Err(e) => eprintln!("Error parsing JSON [{}]: {}", registry_key, e),
+                                }
+                            }
+                        )*
+                        _ => {}
                     }
-                    continue;
                 }
-                "json" => {} // Route down to structured data parsing below
-                _ => continue, // Unknown extension types safely skipped
-            };
-            // Structured JSON Data Registry Deserialization Routing
-            match asset_type.as_str() {
-                "tile" | "tiles" => {
-                    match serde_json::from_slice::<TileRegistryData>(bytes) {
-                        Ok(data) => { tile_datas.insert(registry_key, data); }
-                        Err(e) => eprintln!("Error parsing Tile JSON [{}]: {}", registry_key, e),
-                    }
-                }
-                "sound" | "sounds" => {
-                    match serde_json::from_slice::<SoundRegistryData>(bytes) {
-                        Ok(data) => { sound_datas.insert(registry_key, data); }
-                        Err(e) => eprintln!("Error parsing Sound JSON [{}]: {}", registry_key, e),
-                    }
-                }
-                "item" | "items" => {
-                    match serde_json::from_slice::<ItemRegistryData>(bytes) {
-                        Ok(data) => { item_datas.insert(registry_key, data); }
-                        Err(e) => eprintln!("Error parsing Item JSON [{}]: {}", registry_key, e),
-                    }
-                }
-                "moveset" | "movesets" => {
-                    match serde_json::from_slice::<MovesetRegistryData>(bytes) {
-                        Ok(data) => { moveset_datas.insert(registry_key, data); }
-                        Err(e) => eprintln!("Error parsing Moveset JSON [{}]: {}", registry_key, e),
-                    }
-                }
-                "ui" | "gui" | "uiscreen" | "guiscreen" => {
-                    match serde_json::from_slice::<UiScreenRegistryData>(bytes) {
-                        Ok(data) => { gui_datas.insert(registry_key, data); }
-                        Err(e) => eprintln!("Error parsing Ui JSON [{}]: {}", registry_key, e),
-                    }
-                }
-                "threepatch" | "three_patch" | "threepatches" | "three_patches" | "window" | "windows" => {
-                    match serde_json::from_slice::<ThreePatchRegistryData>(bytes) {
-                        Ok(data) => { three_patch_datas.insert(registry_key, data); }
-                        Err(e) => eprintln!("Error parsing Three Patch JSON [{}]: {}", registry_key, e),
-                    }
-                }
-                _ => {}
+            }
+
+            for subdir in dir.dirs() {
+                load_dir_recursive(subdir, ctx);
             }
         }
-    }
 
-    // Recurse down into directories
-    for subdir in dir.dirs() {
-        load_dir_recursive(subdir, sprites, sounds, langs, tile_datas, sound_datas, item_datas, moveset_datas, gui_datas, three_patch_datas);
-    }
+        pub fn dump_all_diagnostics() {
+            println!("\n🚀 --- INITIATING ALL REGISTRY DIAGNOSTIC SYSTEM DUMPS --- 🚀\n");
+            $( $asset_static.$asset_dump_method($asset_dump_name); )*
+            $( $data_static.$data_dump_method($data_dump_name); )*
+        }
+
+        pub fn print_all() {
+            println!("--- Unified Database Counters ---");
+            $( println!("  {:<14} {}", format!("{}:", $asset_label), $asset_static.len()); )*
+            $( println!("  {:<14} {}", format!("{}:", $data_label), $data_static.len()); )*
+        }
+    };
 }
 
-pub fn print_all() {
-    println!("--- Unified Database Counters ---");
-    println!("  Sprites:   {}", SPRITE_REGISTRY.len());
-    println!("  Sounds:    {}", SOUND_REGISTRY.len());
-    println!("  Tiles:    {}", TILE_DATA_REGISTRY.len());
-    println!("  Items:     {}", ITEM_DATA_REGISTRY.len());
-    println!("  Movesets:  {}", MOVESET_DATA_REGISTRY.len());
-    println!("  UiScreens:  {}", GUI_DATA_REGISTRY.len());
-    println!("  ThreePatches:  {}", THREE_PATCH_REGISTRY.len());
+// =========================================================================
+// 3. DECLARE THE REGISTRIES (Declarative Configuration)
+// =========================================================================
+declare_registries! {
+    custom_assets: {
+        sprites: Texture2D => {
+            static: SPRITE_REGISTRY,
+            mod: sprites,
+            label: "Sprites",
+            extensions: ["png"],
+            dump: dump_keys("SPRITES"),
+            parse: |bytes, _path| {
+                let texture = Texture2D::from_file_with_format(bytes, Some(ImageFormat::Png));
+                texture.set_filter(FilterMode::Nearest);
+                Some(texture)
+            }
+        },
+        sounds: Vec<u8> => {
+            static: SOUND_REGISTRY,
+            mod: sounds,
+            label: "Sounds",
+            extensions: ["wav", "ogg"],
+            dump: dump_keys("SOUND AUDIO"),
+            parse: |bytes, _path| Some(bytes.to_vec())
+        },
+        langs: String => {
+            static: LANG_REGISTRY,
+            mod: langs,
+            label: "Languages",
+            extensions: ["lang"],
+            dump: dump_keys("LANGUAGE FILES"),
+            parse: |bytes, _path| String::from_utf8(bytes.to_vec()).ok()
+        },
+    },
+
+    json_data: {
+        tiles: TileRegistryData => {
+            static: TILE_DATA_REGISTRY,
+            mod: tiles,
+            label: "Tiles",
+            folders: ["tile", "tiles"],
+            dump: dump_detailed("TILE BLUEPRINTS"),
+        },
+        sound_data: SoundRegistryData => {
+            static: SOUND_DATA_REGISTRY,
+            mod: sound_data,
+            label: "Sound Data",
+            folders: ["sound", "sounds"],
+            dump: dump_detailed("SOUND DATA"),
+        },
+        items: ItemRegistryData => {
+            static: ITEM_DATA_REGISTRY,
+            mod: items,
+            label: "Items",
+            folders: ["item", "items"],
+            dump: dump_detailed("ITEM DATABASE"),
+        },
+        movesets: MovesetRegistryData => {
+            static: MOVESET_DATA_REGISTRY,
+            mod: movesets,
+            label: "Movesets",
+            folders: ["moveset", "movesets"],
+            dump: dump_detailed("MOVESET DATABASE"),
+        },
+        uiscreen: UiScreenRegistryData => {
+            static: GUI_DATA_REGISTRY,
+            mod: uiscreen,
+            label: "UiScreens",
+            folders: ["ui", "gui", "uiscreen", "guiscreen"],
+            dump: dump_detailed("UI SCREENS"),
+        },
+        threepatch: ThreePatchRegistryData => {
+            static: THREE_PATCH_REGISTRY,
+            mod: threepatch,
+            label: "ThreePatches",
+            folders: ["threepatch", "three_patch", "threepatches", "three_patches", "window", "windows"],
+            dump: dump_detailed("THREE PATCH WINDOWS"),
+        },
+        hexcolor: HexColor => {
+            static: HEX_COLOR_REGISTRY,
+            mod: hexcolor,
+            label: "HexColor",
+            folders: ["color", "colors", "hexcolor", "hexcolors", "hex"],
+            dump: dump_detailed("HEX COLOR DATABASE"),
+        },
+        palette: Palette => {
+            static: PALETTE_REGISTRY,
+            mod: palette,
+            label: "Palette",
+            folders: ["palette", "palettes"],
+            dump: dump_detailed("PALETTE DATABASE"),
+        },
+        modularspritelayer: ModularSpriteLayer => {
+            static: MODULAR_SPRITE_LAYER_REGISTRY,
+            mod: modularspritelayer,
+            label: "Modular Sprite Layer",
+            folders: ["modular_sprite_layer", "modular_sprite_layers", "sprite_layer", "sprite_layers"],
+            dump: dump_detailed("MODULAR SPRITE LAYER DATABASE"),
+        },
+        modularsprite: ModularSprite => {
+            static: MODULAR_SPRITE_REGISTRY,
+            mod: modularsprite,
+            label: "Modular Sprite",
+            folders: ["modular_sprite", "modular_sprites", "mod_sprites", "mod_sprite"],
+            dump: dump_detailed("MODULAR SPRITE DATABASE"),
+        },
+    }
 }

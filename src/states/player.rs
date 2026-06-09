@@ -21,7 +21,7 @@ pub struct Player {
     pub movement: Movement,
     pub world: usize,
     pub scene: usize,
-    pub inputs: Inputs,
+    pub actions: Actions
 }
 impl Player {
     pub fn new() -> Self {
@@ -33,7 +33,7 @@ impl Player {
             movement: Movement::new(4.0, 0.0),
             world: 0,
             scene: 0,
-            inputs: Inputs::new(),
+            actions: Actions::new()
         }
     }
 }

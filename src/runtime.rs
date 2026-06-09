@@ -4,13 +4,22 @@ use crate::states::GameState;
 
 pub struct Runtime {
     pub current_state: GameState,
-    pub mouse_position: Vec2,
 }
 impl Runtime {
     pub fn new() -> Self {
         Runtime {
             current_state: GameState::MainMenu,
-            mouse_position: Vec2::ZERO,
+        }
+    }
+}
+
+pub struct Inputs {
+    pub mouse_position: Vec2
+}
+impl Inputs {
+    pub fn new() -> Self{
+        Inputs {
+            mouse_position: Vec2::ZERO
         }
     }
     pub fn update(&mut self) {
@@ -32,4 +41,8 @@ impl Runtime {
 
         self.mouse_position = vec2(logical_x, logical_y);
     }
+}
+
+pub fn get_mouse_position() -> Vec2 {
+    crate::INPUT.lock().unwrap().mouse_position.clone()
 }

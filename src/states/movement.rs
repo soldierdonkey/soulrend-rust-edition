@@ -9,7 +9,7 @@ pub use self::player_movement::*;
 // src/states/movement.rs
 // Direction Enum
 // Implements its own None so Option<Direction> is not needed. Does not carry data.
-use super::super::helper::approach;
+use crate::helper::approach::approach;
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum Direction {
@@ -40,13 +40,13 @@ impl Movement {
         }
     }
 
-    pub fn update(&mut self, inputs: &Inputs, scene_map: &SceneMap, dt: f32) {
+    pub fn update(&mut self, actions: &Actions, scene_map: &SceneMap, dt: f32) {
         let gravity = 22.0;       // Blocks per second downward acceleration
         let walk_speed = 7.0;     // Run velocity limit in blocks
         let jump_force = -11.0;   // Immediate negative vertical impulse
 
         // --- Horizontal Input Handling ---
-        match inputs.direction {
+        match actions.direction {
             Direction::Left => self.velocity.x = -walk_speed,
             Direction::Right => self.velocity.x = walk_speed,
             Direction::None => {
@@ -56,7 +56,7 @@ impl Movement {
         }
         
         // --- Jump Input Handling ---
-        if inputs.vertical == Direction::Up && self.is_grounded {
+        if actions.vertical == Direction::Up && self.is_grounded {
             self.velocity.y = jump_force;
             self.is_grounded = false;
         }

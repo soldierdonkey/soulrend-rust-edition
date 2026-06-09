@@ -14,7 +14,8 @@ use self::runtime::*;
 
 mod render;
 
-// 1. Tell Rust to look for the sprites.rs file
+mod debug;
+
 mod assets;
 
 
@@ -26,6 +27,7 @@ pub const LOGICAL_HEIGHT: f32 = 1080.0;
 const TILE_SIZE: f32 = 128.0;
 pub const ITEM_SIZE: f32 = 120.0;
 static DEBUG: Mutex<bool> = Mutex::new(false);
+static INPUT: Mutex<Inputs> = Mutex::new(Inputs { mouse_position: Vec2::ZERO });
 
 
 #[macroquad::main("Soulrend Rust Edition")]
@@ -52,6 +54,8 @@ async fn main() {
         {
             let mut debug = DEBUG.lock().unwrap(); // Lock to get mutable access
             *debug = is_key_pressed(KeyCode::Period);
+            let mut inputs = INPUT.lock().unwrap(); // Lock to get mutable access
+            inputs.update();
         }
         // --- 1. DRAW GAME AT FIXED RESOLUTION ---
         // Switch rendering to our virtual canvas
@@ -60,7 +64,6 @@ async fn main() {
         clear_background(Color::from_rgba(20, 20, 25, 255));
         
         //update mouse coordinates in runtime
-        game.update();
         match &mut game.current_state {
             GameState::MainMenu => {
                 main_menu(&mut game);

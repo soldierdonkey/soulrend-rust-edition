@@ -23,7 +23,7 @@ impl Tile {
                 }
             }
             None => {
-                panic!("Error! Tile Type: {} does is not in the Tile Registry!", tile_type);
+                crate::global_panic!(data tiles &tile_type);
             }
         };
 
@@ -47,7 +47,7 @@ impl Tile {
                 }
             }
             None => {
-                panic!("Error! Tile Type: {} does is not in the Tile Registry!", &self.tile_type);
+                crate::global_panic!(data tiles &self.tile_type);
             }
         };
     }
