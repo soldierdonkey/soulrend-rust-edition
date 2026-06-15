@@ -47,7 +47,7 @@ impl Runtime {
         let mouse_clicked = is_mouse_button_released(MouseButton::Left);
         for widget in &widget_list.list {
             // True Centering (The widget's own center aligns with the window center offset)
-            let mut global_pos = centering_to_coordinates(&widget.position, Vec2::new(widget.size.0, widget.size.1), window_center);
+            let global_pos = centering_to_coordinates(&widget.position, Vec2::new(widget.size.0, widget.size.1), window_center);
             let widget_rect = Rect::new(global_pos.x, global_pos.y, widget.size.0, widget.size.1);
             let is_hovered = widget_rect.contains(mouse);
             match &widget.kind {
@@ -98,22 +98,35 @@ impl Runtime {
                     }
                 }
                 WidgetKind::InventorySlot { binding, sprite, disabled} => {
+                    // ===========================
+                    //     Slot Drawing
+                    // ===========================
                     if let Some(sprite) = sprite {
                         let slot_tex_key = if is_hovered { format!("{}/hover", sprite) } else { format!("{}/normal", sprite) };
 
                         // Draw threepatch window
                         draw_3_patch_window(&slot_tex_key, Rect::new(global_pos.x, global_pos.y, crate::ITEM_SIZE, crate::ITEM_SIZE));
                     }
+                    // ===========================
+                    //        Item Processing
+                    // ===========================
                     if let InGame(in_game_state) = &self.current_state {
                         if let Some(item) = in_game_state.player.inventory.read_slot(binding) {
                             if let Some(item_entry) = assets::items::get(&item.id) {
                                 if let Some(texture) = assets::sprites::get(&item_entry.sprite) {
+                                    // Draw Texture
                                     draw_texture_ex(texture, global_pos.x, global_pos.y, WHITE, DrawTextureParams {
                                         dest_size: Some(vec2(widget.size.0, widget.size.1)),
                                         ..Default::default()
                                     });
                                 } else {
                                     crate::global_panic!(asset sprites &item_entry.sprite)
+                                }
+                                // ===========================
+                                //        Tooltips!
+                                // ===========================
+                                if is_hovered && &Some(true) != disabled {
+                                    click_action.push(UiAction::Tooltip(binding.clone()));
                                 }
                             } else {
                                 crate::global_panic!(data items &item.id)
@@ -123,9 +136,10 @@ impl Runtime {
                     } else {
                         crate::global_panic!(gamestate widget)
                     }
-                    if let Some(true) = disabled {
-
-                    } else {
+                    // ===========================
+                    //     Click Behaviour
+                    // ===========================
+                    if &Some(true) != disabled {
                         if is_hovered && mouse_clicked {
                             println!("Item Switch Request Registered with binding: {:?}", binding.clone());
                             click_action.push(UiAction::SwitchItemWithMouse(binding.clone()));
@@ -159,7 +173,7 @@ impl Runtime {
                         },
                         WindowType::None => {}
                     }
-                    let mut new_actions: Vec<UiAction> = self.iter_widgets(vec2(global_pos.x+widget.size.0/2.0, global_pos.y+widget.size.1/2.0), widgets);
+                    let new_actions: Vec<UiAction> = self.iter_widgets(vec2(global_pos.x+widget.size.0/2.0, global_pos.y+widget.size.1/2.0), widgets);
                     click_action.extend(new_actions);
                 }
             }

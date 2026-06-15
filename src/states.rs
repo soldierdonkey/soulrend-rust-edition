@@ -16,6 +16,8 @@ pub use self::movement::*;
 // Import Items
 pub mod items;
 pub use self::items::*;
+// Entities
+pub mod entity;
 
 
 // The enum must be public, and its variants are automatically public

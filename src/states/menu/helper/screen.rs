@@ -72,6 +72,21 @@ impl Runtime {
                         crate::global_panic!(gamestate action)
                     }
                 }
+                UiAction::Tooltip(binding) => {
+                    if let InGame(in_game_state) = &self.current_state {
+                        if let Some(item) = in_game_state.player.inventory.read_slot(binding) {
+                            if let Some(item_entry) = assets::items::get(&item.id) {
+                            } else {
+                                crate::global_panic!(data items &item.id)
+                            }
+                            
+                            self.draw_tooltip(item);
+                        }
+                        // There is no item, no worries
+                    } else {
+                        crate::global_panic!(gamestate input)
+                    }
+                }
                 _ => {
                     crate::global_panic!(uiaction action);
                 }

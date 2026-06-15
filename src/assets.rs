@@ -2,18 +2,30 @@ use include_dir::{include_dir, Dir};
 use macroquad::prelude::*;
 use serde::Deserialize;
 use std::collections::HashMap;
-use std::sync::OnceLock;
+use std::sync::{Mutex, OnceLock};
 
 use crate::helper::levenshtein::levenshtein;
 use crate::states::widget::WidgetList;
 use crate::states::{TileType, UiSliceConfig, WindowType};
 use crate::states::items::ItemRegistryData;
 
-mod sprite_modularity;
+pub mod sprite_modularity;
 use crate::assets::sprite_modularity::*;
 
 // Embed the unified assets directory at compile time
 static ASSET_DIR: Dir = include_dir!("$CARGO_MANIFEST_DIR/assets");
+
+// Thread-safe global storage for the single configured font
+static FONT_REGISTRY: OnceLock<Font> = OnceLock::new();
+
+pub mod fonts {
+    use super::*; 
+    
+    /// Returns a reference to the global font if it was successfully loaded.
+    pub fn get() -> Option<&'static Font> {
+        FONT_REGISTRY.get()
+    }
+}
 
 /// Generic, thread-safe global registry wrapper
 pub struct Registry<T> {
@@ -107,6 +119,7 @@ pub struct UiScreenRegistryData {
 #[derive(Debug, Deserialize, Clone)]
 pub struct ThreePatchRegistryData {
     pub border_size: f32,
+    pub padding: f32
 }
 
 // =========================================================================
@@ -179,11 +192,59 @@ macro_rules! declare_registries {
             // =============================================
             // THIS PART IS HARDCODED, LOADS MODULAR SPRITES
             // =============================================
+
+            // Integrated colors in palettes
+            
+            for (palette_id, palette_data) in &mut ctx.palette {
+                for (_color_id, color_data) in palette_data.colors.iter_mut() {
+                    let new = color_data.replace("self", palette_id);
+                    *color_data = new;
+                }
+                if let Some(integrated_hexcolors) = palette_data.integrated_colors.take() {
+                    for (hexcolor_id, hexcolor_data) in &integrated_hexcolors {
+                        ctx.hexcolor.insert(
+                            //namespace:id/color
+                            format!{"{}/{}", palette_id, hexcolor_id},
+                            HexColor { hex: *hexcolor_data }
+                        );
+                    }
+                }
+            }
+
+            // Integrated sprites in items
+
+            for (item_id, item_data) in &mut ctx.items {
+                if let Some(integrated_sprite) = item_data.integrated_sprite.take() {
+                    ctx.modularsprite.insert(
+                        item_id.clone(),
+                        integrated_sprite
+                    );
+                }
+            }
+
+            // modular sprite loading
+
             for (modular_sprite_id, modular_sprite) in &ctx.modularsprite {
                 ctx.sprites.insert(
                     modular_sprite_id.clone(),
                     modular_sprite.init()
                 );
+            }
+
+            // Load the single global font file from assets/config/font.ttf
+            if let Some(font_file) = ASSET_DIR.get_file("config/font.ttf") {
+                match load_ttf_font_from_bytes(font_file.contents()) {
+                    Ok(font) => {
+                        if FONT_REGISTRY.set(font).is_err() {
+                            eprintln!("Warning: Font registry layer was initialized twice.");
+                        }
+                    }
+                    Err(e) => {
+                        eprintln!("Error: Failed to parse 'config/font.ttf': {:?}", e);
+                    }
+                }
+            } else {
+                eprintln!("Warning: Font file 'config/font.ttf' was not found inside the assets directory.");
             }
             // =============================================
             //              END OF HARDCODING
@@ -267,8 +328,9 @@ macro_rules! declare_registries {
 
         pub fn print_all() {
             println!("--- Unified Database Counters ---");
-            $( println!("  {:<14} {}", format!("{}:", $asset_label), $asset_static.len()); )*
-            $( println!("  {:<14} {}", format!("{}:", $data_label), $data_static.len()); )*
+            $( println!("  {:<24} {}", format!("{}:", $asset_label), $asset_static.len()); )*
+            $( println!("  {:<24} {}", format!("{}:", $data_label), $data_static.len()); )*
+            println!("  Font Global:             {}", if FONT_REGISTRY.get().is_some() { "✅" } else { "❌" });
         }
     };
 }

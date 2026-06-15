@@ -23,6 +23,11 @@ macro_rules! global_panic {
             panic!("Registry Error: Could not find {} blueprint '{}'.\n{}", stringify!($type), $id, suggestion);
         }
     };
+    (font) => {
+        {
+            panic!("Font Error: Font not initialized!");
+        }
+    };
     (palette $scheme:expr => $palette:expr) => {
         {
             let similar = $palette.find_similar($scheme, 3);
@@ -54,6 +59,9 @@ macro_rules! global_panic {
     };
     (gamestate $data:expr) => {
         panic!("Game State Error: Action Attempted in wrong game state:\n{:#?}!", $data)
+    };
+    (direction $direction:expr) => {
+        panic!{"Direction Error: Invalid direction: {:#?}", $direction}
     }
 }
 

@@ -5,20 +5,12 @@ use crate::states::environment::tile::*;
 use crate::states::environment::scene::*;
 
 mod player_movement;
-pub use self::player_movement::*;
+pub use crate::helper::direction::*;
 // src/states/movement.rs
 // Direction Enum
 // Implements its own None so Option<Direction> is not needed. Does not carry data.
 use crate::helper::approach::approach;
 
-#[derive(Debug, Eq, PartialEq)]
-pub enum Direction {
-    Up,
-    Down,
-    Left,
-    Right,
-    None,
-}
 // Position Struct
 pub struct Movement {
     pub position: Vec2,

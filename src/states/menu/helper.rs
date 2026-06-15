@@ -7,6 +7,7 @@ use macroquad::prelude::Vec2;
 use macroquad::prelude::Rect;
 use crate::runtime::get_mouse_position;
 use crate::states::ArmorSlot;
+use crate::states::Item;
 use crate::states::SlotBinding;
 
 #[derive(Debug, Deserialize, Clone)]
@@ -59,10 +60,11 @@ impl UiSliceConfig {
 }
 
 /// All possible actions a UI button can execute
-#[derive(Debug, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Deserialize, Clone)]
 pub enum UiAction {
     CloseCurrentMenu,
     EnterInstanceManager,
     SwitchItemWithMouse(SlotBinding),
     OpenMenu(String),
+    Tooltip(SlotBinding),
 }

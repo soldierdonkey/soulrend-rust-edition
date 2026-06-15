@@ -1,6 +1,6 @@
 use macroquad::prelude::*;
 use serde::Deserialize;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 use crate::assets;
 
 use crate::helper::hex_to_color::hex_to_color;
@@ -24,6 +24,10 @@ pub struct Palette {
     pub colors: BTreeMap<String, String>,
     // Store thresholds separately to keep the struct clean
     pub thresholds: Vec<(f32, String)>,
+    // Integrated Colors, Optional
+    pub integrated_colors: Option<HashMap<String, u32>>,
+    // Background color
+    pub background: Option<String>
 }
 
 impl Palette {
@@ -48,6 +52,16 @@ impl Palette {
         }
         // Fallback for the lowest/shadow range
         self.get_color(&self.thresholds.last().unwrap().1)
+    }
+    pub fn brightness_to_level(&self, brightness: f32) -> String {
+        // Iterate through thresholds (assumed sorted descending)
+        for (threshold, scheme) in &self.thresholds {
+            if brightness > *threshold {
+                return scheme.clone();
+            }
+        }
+        // Fallback for the lowest/shadow range
+        self.thresholds.last().unwrap().1.clone()
     }
 
     // Palette has a lookup. This is for error management.

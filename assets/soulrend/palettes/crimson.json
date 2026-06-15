@@ -1,0 +1,22 @@
+{
+    "name": "Crimson",
+    "colors": {
+        "highlight": "self/highlight",
+        "main": "self/main",
+        "shadow": "self/shadow",
+        "dark": "self/dark"
+    },
+    "thresholds": [
+        [0.9, "highlight"],
+        [0.5, "main"],
+        [0.2, "shadow"],
+        [0, "dark"]
+    ],
+    "integrated_colors": {
+        "highlight": 16751772,
+        "main": 16711680,
+        "shadow": 10682368,
+        "dark": 4653056
+    },
+    "background": "soulrend:dark"
+}

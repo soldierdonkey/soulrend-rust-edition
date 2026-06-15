@@ -7,5 +7,6 @@
             "moveset": "soulrend:movesets/axe"
         }
     },
-    "rarity": "Common"
+    "rarity": "Common",
+    "palette": "soulrend:crimson"
 }

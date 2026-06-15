@@ -18,6 +18,9 @@ mod debug;
 
 mod assets;
 
+mod config;
+use config::window_conf;
+
 
 // Define your game's internal resolution (the logical resolution)
 const VIRTUAL_WIDTH: f32 = 1920.0;
@@ -26,11 +29,12 @@ pub const LOGICAL_WIDTH: f32 = 1920.0;
 pub const LOGICAL_HEIGHT: f32 = 1080.0;
 const TILE_SIZE: f32 = 128.0;
 pub const ITEM_SIZE: f32 = 120.0;
+pub const FONT_SIZE: f32 = 64.0;
 static DEBUG: Mutex<bool> = Mutex::new(false);
 static INPUT: Mutex<Inputs> = Mutex::new(Inputs { mouse_position: Vec2::ZERO });
 
 
-#[macroquad::main("Soulrend Rust Edition")]
+#[macroquad::main(window_conf)]
 async fn main() {
     // Initialize the game
     let mut game = Runtime::new();
@@ -46,6 +50,7 @@ async fn main() {
     game_camera.render_target = Some(render_target.clone());
 
     // 3. Populate the global registry right after Macroquad starts up (GPU context is ready)
+
     assets::init();
     assets::print_all();
     assets::dump_all_diagnostics();
