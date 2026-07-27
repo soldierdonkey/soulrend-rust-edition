@@ -1,5 +1,9 @@
 // Import Inventory
 mod inventory;
+use serde::Deserialize;
+
+use crate::states::entity::inverse_kinematics::KinematicsData;
+
 pub use self::inventory::*;
 // Import Attributes
 mod attributes;
@@ -13,6 +17,7 @@ pub use super::movement::*;
 pub mod controls;
 pub use self::controls::*;
 
+#[derive(Debug, Clone, Deserialize)]
 pub struct Player {
     pub name: String,
     pub attributes: Attributes,
@@ -21,7 +26,8 @@ pub struct Player {
     pub movement: Movement,
     pub world: usize,
     pub scene: usize,
-    pub actions: Actions
+    pub actions: Actions,
+    pub kinematics: KinematicsData
 }
 impl Player {
     pub fn new() -> Self {
@@ -30,10 +36,11 @@ impl Player {
             stats: Stats::new(),
             attributes: Attributes::new(),
             inventory: Inventory::new(),
-            movement: Movement::new(4.0, 0.0),
+            movement: Movement::new(4.0, 10.0, "soulrend:test"),
             world: 0,
             scene: 0,
-            actions: Actions::new()
+            actions: Actions::new(),
+            kinematics: KinematicsData::new("soulrend:test")
         }
     }
 }

@@ -1,4 +1,8 @@
+use serde::Deserialize;
+
 use super::attributes::Attributes;
+
+#[derive(Debug, Clone, Deserialize)]
 pub struct Stats {
     pub hp: f32,
     pub mp: f32,

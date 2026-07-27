@@ -1,3 +1,6 @@
+use serde::Deserialize;
+
+#[derive(Debug, Clone, Deserialize)]
 pub struct Attributes {
     pub max_hp: f32,
     pub max_mp: f32,

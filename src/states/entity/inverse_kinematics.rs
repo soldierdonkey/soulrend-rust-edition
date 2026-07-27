@@ -1,106 +1,379 @@
-// use std::collections::BTreeMap;
+use std::collections::BTreeMap;
+use macroquad::prelude::*;
+use serde::Deserialize;
+use crate::debug::debug_frame;
+use crate::helper::direction::*;
+use crate::assets;
+use crate::helper::Vec2Def;
+use crate::helper::deserialize_vec2_array;
 
-// use macroquad::prelude::*;
-// use serde::Deserialize;
-// pub use crate::helper::direction::*;
+// =========================================================================
+//                      REGISTRY DATA CONFIGURATIONS
+// =========================================================================
 
-// // =========================================================================
-// //                REGISTRY DATA
-// // =========================================================================
-// /// Master modular container storing static configuration patterns
-// #[derive(Debug, Clone, Deserialize)]
-// pub struct KinematicsRegistryData {
-//     /// Bounding box horizontal constraint (AABB Width)
-//     pub aabb_width: f32,
-//     /// Bounding box vertical constraint (AABB Height)
-//     pub aabb_height: f32,
-//     pub body: BodyRegistryData,
-//     pub head: Option<HeadRegistryData>,
-//     pub limbs: Vec<LimbRegistryData>,
-//     pub poses: PoseListRegistryData
-// }
+#[derive(Debug, Clone, Deserialize)]
+pub struct KinematicsRegistryData {
+    pub aabb_width: f32,  // in block units
+    pub aabb_height: f32, // in block units
+    pub body: BodyRegistryData,
+    pub head: Option<HeadRegistryData>,
+    pub limbs: Vec<LimbRegistryData>,
+    pub poses: PoseListRegistryData,
+}
 
-// #[derive(Debug, Clone, Deserialize)]
-// /// Modular Container for Body Data, hexagon shaped
-// pub struct BodyRegistryData {
-//     /// How hight up the center of the body is as a fraction of the AABB height
-//     pub height_offset: f32,
-//     /// How hight the shoulders are as a graction of height
-//     pub shoulder_height: f32,
-//     /// Bounding box horizontal constraint (AABB Width)
-//     pub shoulder_width: f32,
-//     pub neck_width: f32,
-//     pub hip_width: f32,
-//     pub height: f32,
-//     pub weight: f32
-//     // TODO: Automatically calculate connection point of limb
-// }
+#[derive(Debug, Clone, Deserialize)]
+pub struct BodyRegistryData {
+    pub sprite: String,
+    pub height_offset: f32,
+    pub shoulder_height: f32,
+    pub shoulder_width: f32,
+    pub neck_width: f32,
+    pub hip_width: f32,
+    pub height: f32,
+    pub weight: f32,
+}
 
-// #[derive(Debug, Clone, Deserialize)]
-// pub struct HeadRegistryData {
-//     pub width: f32,
-//     pub weight: f32
-// }
+#[derive(Debug, Clone, Deserialize)]
+pub struct HeadRegistryData {
+    pub sprite: String,
+    pub width: f32,
+    pub weight: f32,
+}
 
-// #[derive(Debug, Clone, Deserialize)]
-// pub struct LimbRegistryData {
-//     pub limb_type: LimbType,
-//     pub name: String,
-//     pub length: f32,
-//     pub attach_height: f32,
-//     pub attach_side: Direction,
-//     pub texture_upper: String,
-//     pub texture_lower: String,
-//     pub texture_joint: String,
-//     pub weight: f32
-// }
+#[derive(Debug, Clone, Deserialize)]
+pub struct LimbRegistryData {
+    pub limb_type: LimbType,
+    pub name: String,
+    pub length: f32,
+    pub width: f32,
+    pub attach_height: f32,
+    pub attach_side: Direction,
+    pub texture_upper: String,
+    pub texture_lower: String,
+    pub texture_joint: String,
+    pub weight: f32,
+}
 
-// #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
-// pub enum LimbType {
-//     Arm,
-//     Leg,
-//     Wing,
-//     Tail,
-//     Custom,
-// }
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+pub enum LimbType {
+    Arm,
+    Leg,
+    Wing,
+    Tail,
+    Custom,
+}
 
-// /// Only Stores IDs
-// #[derive(Debug, Clone, Deserialize)]
-// pub struct PoseListRegistryData {
-//     pub standing: String,
-//     pub walking: String,
-//     pub prone: String,
-//     pub additional: BTreeMap<String, String>
-// }
+#[derive(Debug, Clone, Deserialize)]
+pub struct PoseListRegistryData {
+    pub standing: String,
+    pub walking: String,
+    pub prone: String,
+    pub additional: BTreeMap<String, String>,
+}
 
-// /// All positions are a as a fraction of AABB for compatibility reason, defaults to left
-// #[derive(Debug, Clone, Deserialize)]
-// pub struct PoseRegistryData {
-//     pub body_offset: (f32, f32), // 0, 0 is normal, goes to 0.5 max
-//     pub head: f32, // Rotation in radians
-//     pub limbs: Vec<((f32, f32), Direction)>, // ((x, y), bias)
-// } 
-// impl PoseRegistryData {
-//     /// Used for creating the right version of stances, only run on registry initialization
-//     /// NO FORWARD FACING STANCES!
-//     pub fn right(&self) -> PoseRegistryData {
-//         PoseRegistryData {
-//             body_offset: (-self.body_offset.0.clone(), self.body_offset.1.clone()),
-//             head: -self.head.clone(),
-//             limbs: self.limbs.clone().iter().map(
-//                 |limb_data|
-//                 ((-limb_data.0.0, limb_data.0.1), match limb_data.1 {
-//                     Direction::Left => Direction::Right,
-//                     Direction::Right => Direction::Left,
-//                     Direction::Up => Direction::Up,
-//                     _ => crate::global_panic!(direction limb_data.1)
-//                 })
-//             ).collect()
-//         }
-//     }
-// }
+#[derive(Debug, Clone, Deserialize)]
+pub struct PoseRegistryData {
+    pub decay_time: f32,
+    pub body_offset: (f32, f32),
+    pub head: f32,
+    pub limbs: Vec<[((f32, f32), Direction); 2]>,
+}
 
-// // =========================================================================
-// //                REGISTRY DATA
-// // =========================================================================
-// /// Registry
+impl PoseRegistryData {
+    pub fn right(&self) -> PoseRegistryData {
+        let mut new_pose = self.clone();
+        new_pose.body_offset = (-new_pose.body_offset.0, new_pose.body_offset.1);
+        new_pose.head = -new_pose.head;
+        new_pose.limbs = new_pose.limbs.iter().map(|limb_data| {
+            [
+                ((-limb_data[1].0.0, limb_data[1].0.1), match &limb_data[1].1 {
+                    Direction::Left => Direction::Right,
+                    Direction::Right => Direction::Left,
+                    Direction::Up => Direction::Up,
+                    _ => crate::global_panic!(direction &limb_data[0].1),
+                }),
+                ((-limb_data[0].0.0, limb_data[0].0.1), match &limb_data[0].1 {
+                    Direction::Left => Direction::Right,
+                    Direction::Right => Direction::Left,
+                    Direction::Up => Direction::Up,
+                    _ => crate::global_panic!(direction &limb_data[0].1),
+                })
+            ]
+        }).collect();
+        new_pose
+    }
+}
+
+// =========================================================================
+//               ULTRA-LEAN PER-ENTITY RUNTIME INSTANCE
+// =========================================================================
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum SkeletalSegment {
+    Head,
+    Torso,
+    UpperLimb(usize),
+    LowerLimb(usize),
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct KinematicsData {
+    pub id: String,
+    pub current_pose: String,
+    pub next_pose: String,
+    pub progress: f32,
+    #[serde(with = "Vec2Def")]
+    pub body_displacement: Vec2,
+    #[serde(with = "Vec2Def")]
+    pub head_displacement: Vec2,
+    #[serde(deserialize_with = "deserialize_vec2_array")]
+    pub limb_displacements: Vec<Vec2>
+}
+
+struct EvaluatedSkeleton {
+    torso_vertices: [Vec2; 6], // [TL, TR, MidR, BR, BL, MidL]
+    head_pos: Vec2,
+    head_radius_px: f32,
+    limbs: Vec<(Vec2, Vec2, Vec2)>,
+}
+
+impl KinematicsData {
+    pub fn new(registry_id: &str) -> Self {
+        let limb_count = assets::kinematics::get(registry_id)
+            .map(|data| data.limbs.len())
+            .unwrap_or_else(|| crate::global_panic!(data kinematics registry_id));
+
+        Self {
+            id: registry_id.to_string(),
+            current_pose: "soulrend:idle".to_string(),
+            next_pose: "soulrend:idle".to_string(),
+            progress: 1.0,
+            body_displacement: Vec2::ZERO,
+            head_displacement: Vec2::ZERO,
+            limb_displacements: vec![Vec2::ZERO; limb_count]
+        }
+    }
+
+    pub fn transition_to(&mut self, target_pose: String) {
+        let target = if target_pose.is_empty() { "soulrend:idle".to_string() } else { target_pose };
+        
+        if (self.current_pose != target || self.progress == 1.0) && self.next_pose != target {
+            self.current_pose = self.next_pose.clone();
+            self.next_pose = target;
+            self.progress = 0.0;
+        }
+    }
+
+    pub fn apply_impulse_force(&mut self, segment: SkeletalSegment, impulse: Vec2) {
+        match segment {
+            SkeletalSegment::Head => self.head_displacement += impulse,
+            SkeletalSegment::Torso => self.body_displacement += impulse,
+            SkeletalSegment::UpperLimb(idx) | SkeletalSegment::LowerLimb(idx) => {
+                if idx < self.limb_displacements.len() {
+                    self.limb_displacements[idx] += impulse;
+                }
+            }
+        }
+    }
+
+    pub fn update(&mut self, dt: f32) {
+        let registry_id: &str = &self.id;
+        let registry = match assets::kinematics::get(registry_id) {
+            Some(data) => data,
+            None => return,
+        };
+
+        let formatted_id: &str = &format!("{}/{}", registry_id, self.current_pose);
+        let current_pose_data = assets::poses::get(formatted_id);
+        let decay_rate = current_pose_data.map(|p| p.decay_time).unwrap_or(0.2).max(0.01);
+
+        if self.progress < 1.0 {
+            self.progress = (self.progress + dt / decay_rate).min(1.0);
+        }
+
+        let snap_strength = 12.0 * dt;
+        self.body_displacement += (Vec2::ZERO - self.body_displacement) * snap_strength;
+        self.head_displacement += (Vec2::ZERO - self.head_displacement) * snap_strength;
+        
+        if self.limb_displacements.len() != registry.limbs.len() {
+            self.limb_displacements.resize(registry.limbs.len(), Vec2::ZERO);
+        }
+        for force in &mut self.limb_displacements {
+            *force += (Vec2::ZERO - *force) * snap_strength;
+        }
+    }
+
+    /// Evaluates skeletal joint positions assuming `top_left_pos` is the top-left screen pixel position.
+    fn evaluate_skeleton(&self, top_left_pos: Vec2, registry: &KinematicsRegistryData) -> EvaluatedSkeleton {
+        let is_animating = self.current_pose != self.next_pose;
+        let pose_curr_id = if is_animating { &self.current_pose } else { "soulrend:idle" };
+        let pose_next_id = if is_animating { &self.next_pose } else { "soulrend:idle" };
+
+        let p_curr = assets::poses::get(pose_curr_id);
+        let p_next = assets::poses::get(pose_next_id);
+
+        // 1. Direct pixel dimensions from registry
+        let aabb_w_px = registry.aabb_width;
+        let aabb_h_px = registry.aabb_height;
+
+        let base_offset_curr = p_curr.map(|p| Vec2::new(p.body_offset.0, p.body_offset.1)).unwrap_or(Vec2::ZERO);
+        let base_offset_next = p_next.map(|p| Vec2::new(p.body_offset.0, p.body_offset.1)).unwrap_or(Vec2::ZERO);
+        let blended_offset = base_offset_curr.lerp(base_offset_next, self.progress);
+
+        // 2. Calculate center of AABB box in top-left pixel space
+        let aabb_center = top_left_pos + Vec2::new(aabb_w_px / 2.0, aabb_h_px / 2.0);
+
+        let body_center = aabb_center 
+            + Vec2::new(blended_offset.x * aabb_w_px, blended_offset.y * aabb_h_px) 
+            + self.body_displacement;
+
+        let body_h_px = registry.body.height;
+        let half_h = body_h_px / 2.0;
+        let neck_y = body_center.y - half_h;
+        let hips_y = body_center.y + half_h;
+
+        let sw_px = registry.body.shoulder_width / 2.0;
+        let hw_px = registry.body.hip_width / 2.0;
+        let mw_px = (sw_px + hw_px) / 2.0;
+
+        let torso_vertices = [
+            Vec2::new(body_center.x - sw_px, neck_y),       // 0: Top Left
+            Vec2::new(body_center.x + sw_px, neck_y),       // 1: Top Right
+            Vec2::new(body_center.x + mw_px, body_center.y),// 2: Mid Right
+            Vec2::new(body_center.x + hw_px, hips_y),       // 3: Bottom Right
+            Vec2::new(body_center.x - hw_px, hips_y),       // 4: Bottom Left
+            Vec2::new(body_center.x - mw_px, body_center.y),// 5: Mid Left
+        ];
+
+        let mut limbs_chains = Vec::with_capacity(registry.limbs.len());
+        for (i, limb_def) in registry.limbs.iter().enumerate() {
+            let limb_length_px = limb_def.length;
+
+            let is_upper = limb_def.attach_height < 0.5;
+            let lerp_t = if is_upper { limb_def.attach_height * 2.0 } else { (limb_def.attach_height - 0.5) * 2.0 };
+            
+            let (v1, v2) = match (&limb_def.attach_side, is_upper) {
+                (Direction::Left, true) => (torso_vertices[0], torso_vertices[5]),
+                (Direction::Left, false) => (torso_vertices[5], torso_vertices[4]),
+                (Direction::Right, true) => (torso_vertices[1], torso_vertices[2]),
+                (Direction::Right, false) => (torso_vertices[2], torso_vertices[3]),
+                _ => (torso_vertices[0], torso_vertices[1]), 
+            };
+            
+            let limb_origin = v1.lerp(v2, lerp_t);
+            
+            let (target_frac, bias_direction) = if let (Some(pc), Some(pn)) = (p_curr, p_next) {
+                 if i / 2 < pc.limbs.len() && i / 2 < pn.limbs.len() {
+                    let c_data = &pc.limbs[i/2][i%2];
+                    let n_data = &pn.limbs[i/2][i%2];
+                    (Vec2::new(c_data.0.0, c_data.0.1).lerp(Vec2::new(n_data.0.0, n_data.0.1), self.progress), if self.progress > 0.5 { &n_data.1 } else { &c_data.1 })
+                } else { (Vec2::ZERO, &Direction::Up) }
+            } else { (Vec2::ZERO, &Direction::Up) };
+
+            let displacement_force = self.limb_displacements.get(i).cloned().unwrap_or(Vec2::ZERO);
+            let raw_target = aabb_center + Vec2::new(target_frac.x * aabb_w_px, target_frac.y * aabb_h_px) + displacement_force;
+
+            let to_target = raw_target - limb_origin;
+            let target_distance = to_target.length().min(limb_length_px - 0.5);
+            let final_effector = limb_origin + (to_target.normalize_or_zero() * target_distance);
+
+            let d = (final_effector - limb_origin).length();
+            let mut joint_pos = final_effector;
+            if d > 0.01 {
+                let l1 = limb_length_px / 2.0;
+                let l2 = limb_length_px / 2.0;
+                let cos_alpha = ((l1 * l1 + d * d - l2 * l2) / (2.0 * l1 * d)).clamp(-1.0, 1.0);
+                let alpha = cos_alpha.acos();
+                let theta = (final_effector.y - limb_origin.y).atan2(final_effector.x - limb_origin.x);
+                let candidate_a = limb_origin + Vec2::new((theta + alpha).cos(), (theta + alpha).sin()) * l1;
+                let candidate_b = limb_origin + Vec2::new((theta - alpha).cos(), (theta - alpha).sin()) * l1;
+                joint_pos = match bias_direction {
+                    Direction::Left => if candidate_a.x < candidate_b.x { candidate_a } else { candidate_b },
+                    Direction::Right => if candidate_a.x > candidate_b.x { candidate_a } else { candidate_b },
+                    Direction::Up => if candidate_a.y < candidate_b.y { candidate_a } else { candidate_b },
+                    Direction::Down => if candidate_a.y > candidate_b.y { candidate_a } else { candidate_b },
+                    _ => candidate_a,
+                };
+            }
+            limbs_chains.push((limb_origin, joint_pos, final_effector));
+        }
+
+        let head_radius_px = registry.head.as_ref().map(|h| h.width / 2.0).unwrap_or(8.0);
+        let neck_center = torso_vertices[0].lerp(torso_vertices[1], 0.5);
+        let head_pos = neck_center + Vec2::new(0.0, -head_radius_px) + self.head_displacement;
+
+        EvaluatedSkeleton {
+            torso_vertices,
+            head_pos,
+            head_radius_px,
+            limbs: limbs_chains,
+        }
+    }
+
+    pub fn draw(&self, top_left_pos: Vec2) {
+        let registry = match assets::kinematics::get(&self.id) {
+            Some(data) => data,
+            None => return,
+        };
+        let skel = self.evaluate_skeleton(top_left_pos, &registry);
+
+        let color = LIGHTGRAY;
+        draw_triangle(skel.torso_vertices[0], skel.torso_vertices[1], skel.torso_vertices[2], color);
+        draw_triangle(skel.torso_vertices[0], skel.torso_vertices[2], skel.torso_vertices[5], color);
+        draw_triangle(skel.torso_vertices[5], skel.torso_vertices[2], skel.torso_vertices[4], color);
+        draw_triangle(skel.torso_vertices[2], skel.torso_vertices[3], skel.torso_vertices[4], color);
+
+        // Head rendering
+        draw_circle(skel.head_pos.x, skel.head_pos.y, skel.head_radius_px, SKYBLUE);
+
+        // Debug Top-Left Bounding Box
+        draw_rectangle_lines(
+            top_left_pos.x,
+            top_left_pos.y,
+            registry.aabb_width,
+            registry.aabb_height,
+            2.0,
+            RED,
+        );
+
+        for (origin, joint, end_effector) in skel.limbs {
+            draw_line(origin.x, origin.y, joint.x, joint.y, 4.0, ORANGE);
+            draw_line(joint.x, joint.y, end_effector.x, end_effector.y, 3.5, YELLOW);
+            draw_circle(joint.x, joint.y, 3.0, BLUE);
+        }
+    }
+
+    pub fn find_intersecting_segment(&self, top_left_pos: Vec2, registry_id: &str, point: Vec2) -> Option<SkeletalSegment> {
+        let registry = assets::kinematics::get(registry_id)?;
+        let skel = self.evaluate_skeleton(top_left_pos, &registry);
+
+        if skel.head_pos.distance(point) <= skel.head_radius_px {
+            return Some(SkeletalSegment::Head);
+        }
+
+        let neck_pos = (skel.torso_vertices[0] + skel.torso_vertices[1]) / 2.0;
+        let hips_pos = (skel.torso_vertices[4] + skel.torso_vertices[3]) / 2.0;
+
+        if distance_to_segment(point, neck_pos, hips_pos) <= ((registry.body.shoulder_width * crate::TILE_SIZE) / 2.0) {
+            return Some(SkeletalSegment::Torso);
+        }
+
+        for (i, (origin, joint, end_effector)) in skel.limbs.iter().enumerate() {
+            let limb_def = &registry.limbs[i];
+            let half_w = (limb_def.width * crate::TILE_SIZE) / 2.0;
+            if distance_to_segment(point, *origin, *joint) <= half_w { return Some(SkeletalSegment::UpperLimb(i)); }
+            if distance_to_segment(point, *joint, *end_effector) <= half_w { return Some(SkeletalSegment::LowerLimb(i)); }
+        }
+        None
+    }
+}
+
+fn distance_to_segment(p: Vec2, a: Vec2, b: Vec2) -> f32 {
+    let ab = b - a;
+    let ap = p - a;
+    let ab_len_sq = ab.length_squared();
+    if ab_len_sq < 0.001 { return a.distance(p); }
+    let t = (ap.dot(ab) / ab_len_sq).clamp(0.0, 1.0);
+    let closest_point = a + t * ab;
+    closest_point.distance(p)
+}

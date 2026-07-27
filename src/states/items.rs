@@ -5,7 +5,7 @@ use serde::Deserialize;
 use crate::assets;
 use crate::assets::sprite_modularity::ModularSprite;
 use crate::helper;
-use crate::helper::draw_rich_text;
+use crate::helper::rich_text::draw_rich_text;
 use crate::runtime::Runtime;
 use crate::runtime::get_mouse_position;
 
@@ -17,7 +17,7 @@ pub use self::armor::*;
 mod affixes;
 pub use self::affixes::*;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Item {
     pub id: String,
     pub item_data: ItemData,
@@ -61,7 +61,7 @@ pub enum ItemType {
 //         PER-ITEM DATA
 // ===========================
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub enum ItemData {
     Weapon(WeaponData),
     Armor,

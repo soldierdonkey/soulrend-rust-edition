@@ -3,6 +3,7 @@ use serde::Deserialize;
 use std::mem::replace;
 use crate::states::{ArmorSlot, Item, slot_to_index};
 
+#[derive(Debug, Clone, Deserialize)]
 pub struct Inventory {
     pub hotbar: [Option<Item>; 9], // 9 total slots
     pub hotbar_selected: usize, // row

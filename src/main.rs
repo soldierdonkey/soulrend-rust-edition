@@ -7,6 +7,8 @@ mod states;
 use states::*;
 
 mod helper;
+use crate::debug::debug_frame;
+
 use self::helper::*;
 
 mod runtime;
@@ -81,12 +83,22 @@ async fn main() {
             }
             GameState::InGame(in_game_state) => {
                 in_game_state.in_game();
+                in_game_state.player.kinematics.update(get_frame_time());
+                if is_key_pressed(KeyCode::F) {
+                    in_game_state.player.kinematics.transition_to("soulrend:prone/left".to_string());
+                }
+                if is_key_pressed(KeyCode::G) {
+                    in_game_state.player.kinematics.transition_to("soulrend:walking/left".to_string());
+                }
+                if debug_frame() {
+                    println!("[Player] => {:#?}", in_game_state.player)
+                }
                 // Call the method defined in states.rs
                 draw_text("Press Escape to exit the instance!", 10.0, 40.0, 80.0, RED);
                 if is_key_pressed(KeyCode::Escape) {
                     game.current_state = GameState::InstanceManager;
                 }
-                game.render_screen("soulrend:inventory".to_string());
+                // game.render_screen("soulrend:inventory".to_string());
             }
         }
         // FPS SECTION

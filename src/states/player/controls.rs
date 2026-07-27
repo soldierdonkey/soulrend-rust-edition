@@ -1,6 +1,7 @@
 use macroquad::prelude::*;
 use crate::states::player::*;
 
+#[derive(Debug, Clone, Deserialize)]
 pub struct Actions {
     pub direction: Direction,
     pub vertical: Direction,

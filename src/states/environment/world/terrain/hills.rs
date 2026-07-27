@@ -18,8 +18,8 @@ pub fn generate_hills(width: usize, height: usize, seed: u32) -> SceneMap {
     // --- TERRAIN TUNING PARAMETERS ---
     match HillType::Plains {
         HillType::Plains => {
-            frequency = 0.03;
-            amplitude = 7.0;
+            frequency = 0.09;
+            amplitude = 10.0;
             base_height = 10.0;
         },
         HillType::Hills => {

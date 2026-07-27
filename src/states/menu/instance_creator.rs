@@ -15,7 +15,7 @@ pub fn instance_creator(game: &mut Runtime) {
             "first_scene".to_string(),
             "First Scene".to_string(),
             "This is the first scene.".to_string(),
-            (600, 200)
+            (100, 50)
         ));
         in_game_state.player.inventory.armor[0] = Some(Item::new("test:iron_axe".to_string()));
         // println!("Created instance: {:?}", in_game_state.environment.worlds[0].scenes[0].tiles.tiles);

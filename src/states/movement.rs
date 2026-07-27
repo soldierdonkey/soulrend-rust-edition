@@ -1,8 +1,11 @@
 use macroquad::math::Vec2;
 use macroquad::prelude::*;
+use serde::Deserialize;
 use crate::states::player::controls::*;
 use crate::states::environment::tile::*;
 use crate::states::environment::scene::*;
+use crate::helper::Vec2Def;
+use crate::assets;
 
 mod player_movement;
 pub use crate::helper::direction::*;
@@ -12,23 +15,33 @@ pub use crate::helper::direction::*;
 use crate::helper::approach::approach;
 
 // Position Struct
+#[derive(Debug, Clone, Deserialize)]
 pub struct Movement {
+    #[serde(with = "Vec2Def")]
     pub position: Vec2,
+    #[serde(with = "Vec2Def")]
     pub velocity: Vec2,
     pub acceleration: f32,
     pub is_grounded: bool,
     pub friction: f32,
+    pub kinematics_id: String,
+    #[serde(with = "Vec2Def")]
     pub size: Vec2,
 }
 impl Movement {
-    pub fn new(start_x: f32, start_y: f32) -> Self {
+    pub fn new(start_x: f32, start_y: f32, kinematics_id: &str) -> Self {
+        let kinematics_data = assets::kinematics::get(kinematics_id).unwrap_or_else(|| crate::global_panic!(data kinematics kinematics_id));
         Self {
             position: Vec2::new(start_x, start_y),
             velocity: Vec2::new(0.0, 0.0),
             acceleration: 50.0,
             is_grounded: false,
             friction: 25.0, 
-            size: Vec2::new(1.0, 2.0), // Standard clean proportions (60% width, 1.8 blocks high)
+            kinematics_id: kinematics_id.to_string(),
+            size: Vec2::new(
+            kinematics_data.aabb_width/crate::TILE_SIZE,
+            kinematics_data.aabb_height/crate::TILE_SIZE
+            )
         }
     }
 
@@ -70,8 +83,7 @@ impl Movement {
         let skin = 0.02; 
 
         // 1. Inset the OPPOSITE axis of motion to prevent ground/wall cross-talk
-        let mut search_rect = if checking_x {
-            // Checking walls: shrink vertically so feet/head don't catch floors/ceilings
+        let search_rect = if checking_x {
             Rect::new(
                 self.position.x,
                 self.position.y + skin,
@@ -79,7 +91,6 @@ impl Movement {
                 self.size.y - (skin * 2.0),
             )
         } else {
-            // Checking floors: shrink horizontally so sides don't catch wall surfaces
             Rect::new(
                 self.position.x + skin,
                 self.position.y,

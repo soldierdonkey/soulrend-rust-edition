@@ -2,7 +2,7 @@ use serde::Deserialize;
 
 use crate::states::{Affix, AffixList, items::rarity::Rarity};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct WeaponData {
     pub affixes: AffixList
 }

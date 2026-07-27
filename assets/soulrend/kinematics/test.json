@@ -1,0 +1,75 @@
+{
+    "aabb_width": 64,
+    "aabb_height": 128,
+    "body": {
+        "sprite": "test:limbs/basalt_top",
+        "height_offset": 0.15,
+        "shoulder_height": 0.2,
+        "shoulder_width": 54,
+        "neck_width": 20,
+        "hip_width": 30,
+        "height": 60,
+        "weight": 20
+    },
+    "head": {
+        "sprite": "test:limbs/basalt_top",
+        "width": 32,
+        "weight": 5
+    },
+    "limbs": [
+        {
+            "limb_type": "Arm",
+            "name": "Arm Left",
+            "length": 60,
+            "width": 12,
+            "attach_height": 0,
+            "attach_side": "Left",
+            "texture_upper": "iron_bars",
+            "texture_lower": "iron_bars",
+            "texture_joint": "reinforced_deepslate_top",
+            "weight": 8
+        },
+        {
+            "limb_type": "Arm",
+            "name": "Arm Right",
+            "length": 60,
+            "width": 12,
+            "attach_height": 0,
+            "attach_side": "Right",
+            "texture_upper": "iron_bars",
+            "texture_lower": "iron_bars",
+            "texture_joint": "reinforced_deepslate_top",
+            "weight": 8
+        },
+        {
+            "limb_type": "Leg",
+            "name": "Leg Left",
+            "length": 60,
+            "width": 16,
+            "attach_height": 0.95,
+            "attach_side": "Left",
+            "texture_upper": "deepslate_bricks",
+            "texture_lower": "deepslate_bricks",
+            "texture_joint": "reinforced_deepslate_top",
+            "weight": 12
+        },
+        {
+            "limb_type": "Leg",
+            "name": "Leg Right",
+            "length": 60,
+            "width": 16,
+            "attach_height": 0.95,
+            "attach_side": "Right",
+            "texture_upper": "deepslate_bricks",
+            "texture_lower": "deepslate_bricks",
+            "texture_joint": "reinforced_deepslate_top",
+            "weight": 12
+        }
+    ],
+    "poses": {
+        "standing": "soulrend:standing",
+        "walking": "soulrend:walking",
+        "prone": "soulrend:prone",
+        "additional": {}
+    }
+}

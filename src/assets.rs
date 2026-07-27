@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use std::sync::{Mutex, OnceLock};
 
 use crate::helper::levenshtein::levenshtein;
+use crate::states::entity::inverse_kinematics::{KinematicsRegistryData, PoseRegistryData};
 use crate::states::widget::WidgetList;
 use crate::states::{TileType, UiSliceConfig, WindowType};
 use crate::states::items::ItemRegistryData;
@@ -246,6 +247,17 @@ macro_rules! declare_registries {
             } else {
                 eprintln!("Warning: Font file 'config/font.ttf' was not found inside the assets directory.");
             }
+
+            // Initialize right-facing poses
+            let mut right_poses: std::collections::HashMap<String, PoseRegistryData> = std::collections::HashMap::with_capacity(ctx.poses.len());
+            let old_poses = std::mem::take(&mut ctx.poses);
+            for (pose_id, pose_data) in old_poses {
+                right_poses.insert(format!("{}/right", &pose_id), pose_data.right());
+                ctx.poses.insert(format!("{}/left", pose_id), pose_data);
+            }
+            ctx.poses.extend(right_poses);
+
+
             // =============================================
             //              END OF HARDCODING
             // =============================================
@@ -416,30 +428,44 @@ declare_registries! {
         hexcolor: HexColor => {
             static: HEX_COLOR_REGISTRY,
             mod: hexcolor,
-            label: "HexColor",
+            label: "HexColors",
             folders: ["color", "colors", "hexcolor", "hexcolors", "hex"],
             dump: dump_detailed("HEX COLOR DATABASE"),
         },
         palette: Palette => {
             static: PALETTE_REGISTRY,
             mod: palette,
-            label: "Palette",
+            label: "Palettes",
             folders: ["palette", "palettes"],
             dump: dump_detailed("PALETTE DATABASE"),
         },
         modularspritelayer: ModularSpriteLayer => {
             static: MODULAR_SPRITE_LAYER_REGISTRY,
             mod: modularspritelayer,
-            label: "Modular Sprite Layer",
+            label: "Modular Sprite Layers",
             folders: ["modular_sprite_layer", "modular_sprite_layers", "sprite_layer", "sprite_layers"],
             dump: dump_detailed("MODULAR SPRITE LAYER DATABASE"),
         },
         modularsprite: ModularSprite => {
             static: MODULAR_SPRITE_REGISTRY,
             mod: modularsprite,
-            label: "Modular Sprite",
+            label: "Modular Sprites",
             folders: ["modular_sprite", "modular_sprites", "mod_sprites", "mod_sprite"],
             dump: dump_detailed("MODULAR SPRITE DATABASE"),
+        },
+        kinematics: KinematicsRegistryData => {
+            static: KINEMATICS_REGISTRY,
+            mod: kinematics,
+            label: "Inverse Kinematics",
+            folders: ["kinematic", "kinematics", "inverse_kinematic", "inverse_kinematics", "kenimatic", "kenimatics", "ragdoll"],
+            dump: dump_detailed("INVERSE KINEMATICS DATABASE"),
+        },
+        poses: PoseRegistryData => {
+            static: POSE_REGISTRY,
+            mod: poses,
+            label: "Entity Poses",
+            folders: ["pose", "poses", "stance", "stances"],
+            dump: dump_detailed("ENTITY POSE DATABASE"),
         },
     }
 }
