@@ -83,7 +83,6 @@ async fn main() {
             }
             GameState::InGame(in_game_state) => {
                 in_game_state.in_game();
-                in_game_state.player.kinematics.update(get_frame_time());
                 if is_key_pressed(KeyCode::F) {
                     in_game_state.player.kinematics.transition_to("soulrend:prone/left".to_string());
                 }
