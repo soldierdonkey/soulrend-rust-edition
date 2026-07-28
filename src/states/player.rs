@@ -2,6 +2,7 @@
 mod inventory;
 use serde::Deserialize;
 
+use crate::states::entity::Creature;
 use crate::states::entity::inverse_kinematics::KinematicsData;
 
 pub use self::inventory::*;
@@ -22,12 +23,9 @@ pub struct Player {
     pub name: String,
     pub attributes: Attributes,
     pub stats: Stats,
-    pub inventory: Inventory,
-    pub movement: Movement,
-    pub world: usize,
-    pub scene: usize,
     pub actions: Actions,
-    pub kinematics: KinematicsData
+    pub inventory: Inventory,
+    pub creature: Creature
 }
 impl Player {
     pub fn new() -> Self {
@@ -36,11 +34,8 @@ impl Player {
             stats: Stats::new(),
             attributes: Attributes::new(),
             inventory: Inventory::new(),
-            movement: Movement::new(4.0, 10.0, "soulrend:test"),
-            world: 0,
-            scene: 0,
             actions: Actions::new(),
-            kinematics: KinematicsData::new("soulrend:test")
+            creature: Creature::new()
         }
     }
 }

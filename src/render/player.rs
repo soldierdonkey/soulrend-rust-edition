@@ -10,7 +10,7 @@ impl Player {
             Some(data) => data,
             None => return,
         };
-        let (player_x, player_y) = (self.movement.position.x, self.movement.position.y); // in block units
+        let (player_x, player_y) = (self.creature.movement.position.x, self.creature.movement.position.y); // in block units
         let (camera_x, camera_y) = central_coordinates;
 
         // Render target pixel sizes for high-res combat sprite sheets
@@ -48,7 +48,7 @@ impl Player {
         //         ..Default::default()
         //     });
         // }
-        self.kinematics.draw(Vec2::new(screen_x, screen_y));
+        self.creature.kinematics.draw(Vec2::new(screen_x, screen_y));
         // Player coordinates:
         // draw_circle(screen_x, screen_y, 10.0, YELLOW);
     }

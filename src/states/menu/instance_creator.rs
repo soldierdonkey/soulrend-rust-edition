@@ -8,8 +8,8 @@ pub fn instance_creator(game: &mut Runtime) {
     if is_key_pressed(KeyCode::Space) {
         // Initialize the inner state data when transitioning
         let mut in_game_state = InGameState::new();
-        in_game_state.player.world = 0; // Set to the first world
-        in_game_state.player.scene = 0; // Set to the first scene
+        in_game_state.player.creature.world = 0; // Set to the first world
+        in_game_state.player.creature.scene = 0; // Set to the first scene
         in_game_state.environment.worlds.push(crate::states::environment::World::new());
         in_game_state.environment.worlds[0].add_scene(crate::states::environment::Scene::new(
             "first_scene".to_string(),
