@@ -83,12 +83,6 @@ async fn main() {
             }
             GameState::InGame(in_game_state) => {
                 in_game_state.in_game();
-                if is_key_pressed(KeyCode::F) {
-                    in_game_state.player.creature.kinematics.transition_to("soulrend:prone/left".to_string());
-                }
-                if is_key_pressed(KeyCode::G) {
-                    in_game_state.player.creature.kinematics.transition_to("soulrend:walking/left".to_string());
-                }
                 if debug_frame() {
                     println!("[Player] => {:#?}", in_game_state.player)
                 }

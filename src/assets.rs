@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use std::sync::{Mutex, OnceLock};
 
 use crate::helper::levenshtein::levenshtein;
-use crate::states::entity::inverse_kinematics::{KinematicsRegistryData, PoseRegistryData};
+use crate::states::entity::inverse_kinematics::{ArmPairRegistryData, JointRegistryData, KinematicsRegistryData, LegSetRegistryData, LimbRegistryData, SegmentRegistryData, TorsoRegistryData};
 use crate::states::widget::WidgetList;
 use crate::states::{TileType, UiSliceConfig, WindowType};
 use crate::states::items::ItemRegistryData;
@@ -248,15 +248,6 @@ macro_rules! declare_registries {
                 eprintln!("Warning: Font file 'config/font.ttf' was not found inside the assets directory.");
             }
 
-            // Initialize right-facing poses
-            let mut right_poses: std::collections::HashMap<String, PoseRegistryData> = std::collections::HashMap::with_capacity(ctx.poses.len());
-            let old_poses = std::mem::take(&mut ctx.poses);
-            for (pose_id, pose_data) in old_poses {
-                right_poses.insert(format!("{}/right", &pose_id), pose_data.right());
-                ctx.poses.insert(format!("{}/left", pose_id), pose_data);
-            }
-            ctx.poses.extend(right_poses);
-
 
             // =============================================
             //              END OF HARDCODING
@@ -460,12 +451,47 @@ declare_registries! {
             folders: ["kinematic", "kinematics", "inverse_kinematic", "inverse_kinematics", "kenimatic", "kenimatics", "ragdoll"],
             dump: dump_detailed("INVERSE KINEMATICS DATABASE"),
         },
-        poses: PoseRegistryData => {
-            static: POSE_REGISTRY,
-            mod: poses,
-            label: "Entity Poses",
-            folders: ["pose", "poses", "stance", "stances"],
-            dump: dump_detailed("ENTITY POSE DATABASE"),
+        torso: TorsoRegistryData => {
+            static: TORSO_REGISTRY,
+            mod: torso,
+            label: "Torsos",
+            folders: ["torso", "torsos", "body", "bodies", "chest", "chests"],
+            dump: dump_detailed("TORSO DATABASE"),
         },
+        legset: LegSetRegistryData => {
+            static: LEG_SET_REGISTRY,
+            mod: legset,
+            label: "Leg Sets",
+            folders: ["legs", "leg", "leg_set", "legset", "leg_sets", "legsets", "walking_implements"],
+            dump: dump_detailed("LEG SET DATABASE"),
+        },
+        armpair: ArmPairRegistryData => {
+            static: ARM_PAIR_REGISTRY,
+            mod: armpair,
+            label: "Arm Pairs",
+            folders: ["arms", "arm", "arm_pair", "armpair", "arm_pairs", "armpairs"],
+            dump: dump_detailed("ARM PAIR DATABASE"),
+        },
+        limb: LimbRegistryData => {
+            static: LIMB_REGISTRY,
+            mod: limb,
+            label: "Limbs",
+            folders: ["limb", "limbs", "appendage", "appendages"],
+            dump: dump_detailed("LIMB DATABASE"),
+        },
+        segment: SegmentRegistryData => {
+            static: SEGMENT_REGISTRY,
+            mod: segment,
+            label: "Segments",
+            folders: ["segment", "segments", "bone", "bones"],
+            dump: dump_detailed("SEGMENT DATABASE"),
+        },
+        joint: JointRegistryData => {
+            static: JOINT_REGISTRY,
+            mod: joint,
+            label: "Joints",
+            folders: ["joint", "joints"],
+            dump: dump_detailed("JOINT DATABASE"),
+        }
     }
 }

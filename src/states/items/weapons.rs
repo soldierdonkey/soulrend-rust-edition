@@ -7,8 +7,16 @@ pub struct WeaponData {
     pub affixes: AffixList
 }
 
+#[derive(Debug, Clone, Deserialize)]
+pub enum HeldWeapon {
+    OneHand(String),
+    TwoHand(String),
+    DualWield(String, String),
+}
+
 #[derive(Debug, Deserialize, Clone)]
 pub struct WeaponType {
+    pub sprite: String,
     pub weight_index: f32,
     // Damage and attack speed are calculated from here
     // damage_scale * attack_speed_scale = 1

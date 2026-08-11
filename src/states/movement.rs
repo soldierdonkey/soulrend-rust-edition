@@ -39,8 +39,8 @@ impl Movement {
             friction: 25.0, 
             kinematics_id: kinematics_id.to_string(),
             size: Vec2::new(
-            kinematics_data.aabb_width/crate::TILE_SIZE,
-            kinematics_data.aabb_height/crate::TILE_SIZE
+            kinematics_data.width/crate::TILE_SIZE,
+            kinematics_data.height/crate::TILE_SIZE
             )
         }
     }

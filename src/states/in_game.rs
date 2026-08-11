@@ -26,6 +26,6 @@ impl InGameState {
             self.environment.worlds[self.player.creature.world].scenes[self.player.creature.scene].tiles.width as usize, 
             self.environment.worlds[self.player.creature.world].scenes[self.player.creature.scene].tiles.height as usize
         );
-        self.player.creature.kinematics.update(get_frame_time());
+        // self.player.creature.kinematics.update(get_frame_time());
     }
 } 

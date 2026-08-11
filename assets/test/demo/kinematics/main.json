@@ -1,0 +1,7 @@
+{
+    "width": 1,
+    "height": 2,
+    "torso": "test:demo",
+    "leg_set": "test:demo",
+    "arm_pairs": ["test:demo"]
+}
